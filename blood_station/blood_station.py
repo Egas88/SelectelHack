@@ -1,25 +1,32 @@
 import requests
+from telebot import types
 from bot import bot
 from cities.cities import get_city_id_by_name
 
+# def process_blood_stations_step(message):
+
 
 def handle_blood_stations_list(message):
+    # markup = types.ReplyKeyboardMarkup(row_width=1)
+    # email_btn = types.KeyboardButton('По Email')
+    # phone_btn = types.KeyboardButton('По номеру телефона')
+    # markup.add(email_btn, phone_btn)
+    # bot.register_next_step_handler(message, process_blood_stations_step)
+
     if message.text == "/view":
         city_id = get_city_id_by_name("Санкт-Петербург")
         url = 'https://hackaton.donorsearch.org/api/blood_stations/'
         params = {'blood_group': 'o_plus', 'city_id': city_id}
         response = requests.get(url=url, params=params)
 
-        i = 0
         blood_stations = response.json()["results"]
-        for blood_station in blood_stations:
-            if blood_station["city_id"] != city_id:
-                i += 1
-                blood_stations.remove(blood_station)
-        print(i)
-        # print(blood_stations)
 
-        blood_station_ids = [value["id"] for value in blood_stations]
+        allowed_blood_stations = []
+        for j in range(0, len(blood_stations)):
+            if blood_stations[j]["city_id"] is city_id:
+                allowed_blood_stations.append(blood_stations[j])
+
+        blood_station_ids = [value["id"] for value in allowed_blood_stations]
         print(blood_station_ids)
 
         print_blood_stations_cards(message.from_user.id, blood_station_ids)
