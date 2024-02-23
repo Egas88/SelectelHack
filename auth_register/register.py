@@ -1,10 +1,13 @@
 import requests
 from telebot import types
+
+from auth_register.users import users_dict
 from bot import bot
 from auth_register.validators import password_validator, email_validator, phone_validator
 from api import *
 
 cur_user_data = {}
+
 
 def handle_register(message):
     user_id = message.from_user.id
@@ -95,9 +98,11 @@ def process_password_step(message, reg_type):
         return
 
     resp = requests.post(API_AUTH_REGISTRATION, data=body)
-    cur_user_data["user_id"] = resp.json()["user_id"]
-    bot.register_next_step_handler(message, process_confirm_reg, reg_type)
-    print(resp)
+    if resp.status_code == 200:
+        cur_user_data["user_id"] = resp.json()["user_id"]
+        bot.register_next_step_handler(message, process_confirm_reg, reg_type)
+    else:
+        return
 
 
 def process_confirm_reg(message, reg_type):
@@ -120,6 +125,7 @@ def process_confirm_reg(message, reg_type):
     if resp.status_code == 200:
         cur_user_data["username"] = resp.json()["username"]
         bot.send_message(user_id, "Вы были успешно зарегистрированы!")
+        users_dict[message.from_user.id] = cur_user_data
     else:
         bot.send_message(user_id, "Введённый Вами код неверен, введите его ещё раз:")
         bot.register_next_step_handler(message, process_confirm_reg, reg_type)
