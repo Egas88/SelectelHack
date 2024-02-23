@@ -129,7 +129,6 @@ def process_confirm_reg(message, reg_type):
         return
 
     if resp.status_code == 200:
-        # cur_user_data["username"] = resp.json()["username"]
         cur_user_data["username"] = cur_user_data["email"] if "email" in cur_user_data else cur_user_data["phone"]
         bot.send_message(chat_id, "Вы были успешно зарегистрированы!")
         users_dict[message.chat.id] = cur_user_data

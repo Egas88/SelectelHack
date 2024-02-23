@@ -4,7 +4,7 @@ from telebot import types
 from api import *
 from auth_register.validators import password_validator, phone_validator, email_validator
 from bot import bot
-from auth_register.users import users_dict
+from auth_register.users import users_dict, get_password, get_username
 from menu.menu import handle_menu
 
 
@@ -70,7 +70,7 @@ def process_password_change(message):
         }
 
         resp = requests.post(API_AUTH_CHANGE_PASSWORD, data=body,
-                             auth=(users_dict[chat_id]["username"], users_dict[chat_id]["password"]))
+                             auth=(get_username(chat_id), get_password(chat_id)))
         if resp.status_code == 200:
             users_dict[chat_id]["password"] = password1
             bot.send_message(chat_id, "Пароль успешно сменён!")
@@ -95,13 +95,14 @@ def process_phone_change(message):
     }
 
     resp = requests.post(API_AUTH_CHANGE_PHONE, data=body,
-                         auth=(users_dict[chat_id]["username"], users_dict[chat_id]["password"]))
+                         auth=(get_username(chat_id), get_password(chat_id)))
     if resp.status_code == 200:
         users_dict[chat_id]["phone"] = formatted_phone
         bot.send_message(chat_id, "Телефон успешно сменён!")
         handle_menu(message)
     else:
         return
+
 
 def process_email_change(message):
     chat_id = message.chat.id
@@ -116,7 +117,7 @@ def process_email_change(message):
         "email": email,
     }
     resp = requests.post(API_AUTH_CHANGE_EMAIL, data=body,
-                         auth=(users_dict[chat_id]["username"], users_dict[chat_id]["password"]))
+                         auth=(get_username(chat_id), get_password(chat_id)))
 
     if resp.status_code == 200:
         users_dict[chat_id]["email"] = email

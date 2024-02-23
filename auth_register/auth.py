@@ -26,6 +26,7 @@ def process_password_step(message):
     chat_id = message.chat.id
     password = message.text
     is_valid = False
+
     phone = None
     try:
         is_valid = email_validator(cur_user_data["username"])
@@ -43,6 +44,9 @@ def process_password_step(message):
 
     if phone is not None:
         cur_user_data["username"] = phone
+        cur_user_data["phone"] = phone
+    else:
+        cur_user_data["email"] = cur_user_data["username"]
 
     cur_user_data["password"] = password
     body = {
