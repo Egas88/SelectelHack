@@ -7,7 +7,7 @@ from auth_register.auth import handle_login
 from start.start import handle_start
 
 load_dotenv()
-
+#
 bot = telebot.TeleBot(os.getenv('BOT_TOKEN'))
 
 
