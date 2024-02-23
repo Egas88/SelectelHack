@@ -2,6 +2,7 @@ from telebot import types
 from auth_register.register import handle_register
 from auth_register.auth import handle_login
 from start.start import handle_start
+from donation.donation import handle_donation_adding
 from bot import bot
 
 
@@ -17,7 +18,8 @@ def register(message):
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    handle_start(bot, message)
+    handle_donation_adding(message)
+    #handle_start(bot, message)
 
 
 @bot.message_handler(content_types=['text'])
