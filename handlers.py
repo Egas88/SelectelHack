@@ -18,8 +18,7 @@ def register(message):
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    handle_donation_adding(message)
-    #handle_start(bot, message)
+    handle_start(bot, message)
 
 
 @bot.message_handler(content_types=['text'])
