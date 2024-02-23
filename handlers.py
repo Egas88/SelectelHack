@@ -7,17 +7,17 @@ from bot import bot
 
 @bot.message_handler(commands=['login'])
 def login(message):
-    handle_login(bot, message)
+    handle_login(message)
 
 
 @bot.message_handler(func=lambda message: message.text == 'Регистрация', commands=['register'])
 def register(message):
-    handle_register(bot, message)
+    handle_register(message)
 
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    handle_start(bot, message)
+    handle_start(message)
 
 
 @bot.message_handler(content_types=['text'])
@@ -27,7 +27,7 @@ def message_reply(message):
     elif message.text == "Логин":
         login(message)
     else:
-        pass
+        bot.send_message(message.chat.id, "Пожалуйста, воспользуйтесь кнопками ниже.")
 
 
 if __name__ == "__main__":
