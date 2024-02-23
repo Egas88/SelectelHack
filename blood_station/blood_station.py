@@ -7,5 +7,5 @@ def handle_blood_stations_list(bot, message):
         print(parsed["count"])
         print(parsed["results"])
 
-        bot.send_message(message.from_user.id, "Смотри логи е")
+        bot.send_message(message.chat.id, "Смотри логи е")
 
