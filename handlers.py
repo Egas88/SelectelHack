@@ -18,7 +18,7 @@ def register(message):
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    handle_start(message)
+    handle_start(bot, message)
 
 @bot.message_handler(commands=['view'])
 def view(message):
