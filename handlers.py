@@ -1,6 +1,7 @@
 from telebot import types
 from auth_register.register import handle_register
 from auth_register.auth import handle_login
+from bonuses.bonuses import handle_view_bonuses_list
 from start.start import handle_start
 from bot import bot
 
@@ -19,6 +20,9 @@ def register(message):
 def start(message):
     handle_start(message)
 
+@bot.message_handler(commands=['viewBonuses'])
+def view_bonuses_list(message):
+    handle_view_bonuses_list(message)
 
 @bot.message_handler(content_types=['text'])
 def message_reply(message):
