@@ -3,6 +3,7 @@ from auth_register.register import handle_register
 from auth_register.auth import handle_login
 from start.start import handle_start
 from bot import bot
+from blood_station.blood_station import handle_blood_stations_list
 
 
 @bot.message_handler(commands=['login'])
@@ -18,7 +19,6 @@ def register(message):
 @bot.message_handler(commands=['start'])
 def start(message):
     handle_start(bot, message)
-
 
 @bot.message_handler(content_types=['text'])
 def message_reply(message):
