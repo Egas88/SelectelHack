@@ -7,3 +7,10 @@ def handle_register(bot, message):
     email_btn = types.KeyboardButton('Email')
     phone_btn = types.KeyboardButton('По номеру телефона')
     markup.add(email_btn, phone_btn)
+
+def email_register(bot, message):
+    ...
+
+
+def phone_register(bot, message):
+    ...

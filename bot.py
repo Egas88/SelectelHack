@@ -16,7 +16,7 @@ def login(message):
     handle_login(bot, message)
 
 
-@bot.message_handler(commands=['register'])
+@bot.message_handler(func=lambda message: message.text == 'Регистрация', commands=['register'])
 def register(message):
     handle_register(bot, message)
 
@@ -24,6 +24,16 @@ def register(message):
 @bot.message_handler(commands=['start'])
 def start(message):
     handle_start(bot, message)
+
+
+@bot.message_handler(content_types=['text'])
+def message_reply(message):
+    if message.text == "Регистрация":
+        register(message)
+    elif message.text == "Логин":
+        login(message)
+    else:
+        pass
 
 
 if __name__ == "__main__":
