@@ -9,21 +9,21 @@ cur_user_data = {}
 
 
 def handle_login(message):
-    user_id = message.chat.id
-    bot.send_message(user_id, "Введите ваш логин")
+    chat_id = message.chat.id
+    bot.send_message(chat_id, "Введите ваш логин")
     bot.register_next_step_handler(message, process_username_step)
 
 
 def process_username_step(message):
-    user_id = message.chat.id
+    chat_id = message.chat.id
     username = message.text
     cur_user_data["username"] = username
-    bot.send_message(user_id, "Введите ваш пароль")
+    bot.send_message(chat_id, "Введите ваш пароль")
     bot.register_next_step_handler(message, process_password_step)
 
 
 def process_password_step(message):
-    user_id = message.chat.id
+    chat_id = message.chat.id
     password = message.text
     is_valid = False
     phone = None
@@ -37,7 +37,7 @@ def process_password_step(message):
         except Exception as e:
             return
         if not is_valid:
-            bot.send_message(user_id, "Введите корректный логин")
+            bot.send_message(chat_id, "Введите корректный логин")
             bot.register_next_step_handler(message, process_password_step)
             return
 
@@ -52,10 +52,11 @@ def process_password_step(message):
 
     resp = requests.post(API_AUTH_LOGIN, data=body)
     if resp.status_code == 200:
-        bot.send_message(user_id, "Вы были успешно авторизированы!")
+        bot.send_message(chat_id, "Вы были успешно авторизированы!")
         users_dict[message.chat.id] = cur_user_data
         handle_menu(message)
 
     else:
-        bot.send_message(user_id, "Введённые данные неверны")
+        bot.send_message(chat_id, "Введённые данные неверны")
+        handle_login(message)
 

@@ -1,6 +1,5 @@
 from telebot import types
 
-from auth_register.change_creds.change_creds import handle_change_creds
 from bot import bot
 
 
@@ -31,13 +30,3 @@ def handle_menu(message):
                games_projects_button, articles_button, donate_button, change_personal)
 
     bot.send_message(message.chat.id, "Выбирайте!", reply_markup=markup)
-
-
-@bot.callback_query_handler(func=lambda call: call.data.startswith('menu_'))
-def message_reply(callback):
-    if callback.data == "menu_change_personal":
-        handle_change_creds(callback.message)
-    elif callback.data == "start_login":
-        pass
-    else:
-        return

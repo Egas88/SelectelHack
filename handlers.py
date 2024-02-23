@@ -1,4 +1,6 @@
 from telebot import types
+
+from auth_register.change_creds.change_creds import handle_change_creds
 from auth_register.register import handle_register
 from auth_register.auth import handle_login
 from menu.menu import handle_menu
@@ -27,6 +29,16 @@ def message_reply(callback):
             handle_login(callback.message)
     else:
         return
+@bot.callback_query_handler(func=lambda call: call.data.startswith('menu_'))
+def message_reply(callback):
+    if callback.data == "menu_change_personal":
+        handle_change_creds(callback.message)
+    elif callback.data == "start_login":
+        pass
+    else:
+        return
+
+
 
 
 if __name__ == "__main__":
