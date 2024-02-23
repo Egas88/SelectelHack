@@ -8,8 +8,18 @@ from start.start import handle_start
 from auth_register.users import users_dict
 from bot import bot
 from menu.menu_handlers import *
+
+
 @bot.message_handler(commands=['start'])
 def start(message):
+    chat_id = message.chat.id
+
+    # Создаем кнопку "Start"
+    start_button = types.KeyboardButton('/start')
+
+    keyboard = types.ReplyKeyboardMarkup()
+    keyboard.add(start_button)
+
     handle_start(message)
 
 
@@ -30,6 +40,7 @@ def message_reply(callback):
     else:
         return
 
+
 @bot.callback_query_handler(func=lambda call: call.data.startswith('menu_'))
 def message_reply(callback):
     if callback.data == "menu_donations":
@@ -42,8 +53,6 @@ def message_reply(callback):
         handle_personal_menu(callback.message)
     else:
         return
-
-
 
 
 if __name__ == "__main__":
