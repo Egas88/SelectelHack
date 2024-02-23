@@ -2,6 +2,9 @@ import requests
 import re
 from bot import bot
 from api import *
+from auth_register.users import users_dict
+
+bonus_ids = []
 
 def handle_view_bonuses_list(message):
     url = API_BONUSES
@@ -16,6 +19,9 @@ def handle_view_bonuses_list(message):
         bonus_id = bonus["id"]
 
         details_json = get_info_by_bonus_id(bonus_id)
+
+        #Test getting feedback
+        bonus_feedback_details = get_feedback_by_bonus_id(message.from_user.id, bonus_id)
 
         result += form_html_message_by_bonus(details_json)
 
@@ -57,6 +63,14 @@ def format_description(description):
 def get_info_by_bonus_id(bonus_id):
     url = API_BONUSES_ID
     response = requests.get(url.format(bonus_id))
+
+    response_json = response.json()
+    print(response_json)
+    return response_json
+
+def get_feedback_by_bonus_id(user_id, bonus_id):
+    url = API_BONUSES_ID_FEEDBACK
+    response = requests.get(url.format(bonus_id), auth=(users_dict[user_id]["username"], users_dict[user_id]["password"]))
 
     response_json = response.json()
     print(response_json)
