@@ -30,13 +30,13 @@ def handle_change_creds(message):
 def process_register_step(callback):
     chat_id = callback.message.chat.id
     if callback.data == "change_email":
-        bot.send_message(chat_id, "Введите ваш email:")
+        bot.send_message(chat_id, "📧 Введите новый email:")
         bot.register_next_step_handler(callback.message, process_email_change)
     elif callback.data == "change_phone":
-        bot.send_message(chat_id, "Введите новый телефона:")
+        bot.send_message(chat_id, "☎️ Введите новый телефона:")
         bot.register_next_step_handler(callback.message, process_phone_change)
     elif callback.data == "change_password":
-        bot.send_message(chat_id, "Введите новый пароль!")
+        bot.send_message(chat_id, "🔑 Введите новый пароль!")
         bot.register_next_step_handler(callback.message, process_password_change)
     elif callback.data == "change_go_back":
         handle_menu(callback.message)
@@ -49,7 +49,7 @@ def process_password_change(message):
     password1 = message.text
 
     if not password_validator(password1):
-        bot.send_message(chat_id, "Извините, ваш пароль слишком простой. Не забывайте использовать цифры, строчные и "
+        bot.send_message(chat_id, "Извините, ваш пароль слишком простой.\n Не забывайте использовать цифры, строчные и "
                                   "прописные буквы, а также спецсимволы")
         bot.register_next_step_handler(message, process_password_change)
         return
@@ -73,7 +73,7 @@ def process_password_change(message):
                              auth=(get_username(chat_id), get_password(chat_id)))
         if resp.status_code == 200:
             users_dict[chat_id]["password"] = password1
-            bot.send_message(chat_id, "Пароль успешно сменён!")
+            bot.send_message(chat_id, "Пароль успешно изменён!")
             handle_menu(message)
         else:
             return
@@ -86,7 +86,7 @@ def process_phone_change(message):
     phone = message.text
     is_valid, formatted_phone = phone_validator(phone)
     if not is_valid:
-        bot.send_message(chat_id, "Извините, ваш телефон некорректен. Введите верный мобильный номер")
+        bot.send_message(chat_id, "Извините, введённый номер некорректен.\nВведите верный мобильный номер")
         bot.register_next_step_handler(message, process_phone_change)
         return
 
@@ -98,7 +98,7 @@ def process_phone_change(message):
                          auth=(get_username(chat_id), get_password(chat_id)))
     if resp.status_code == 200:
         users_dict[chat_id]["phone"] = formatted_phone
-        bot.send_message(chat_id, "Телефон успешно сменён!")
+        bot.send_message(chat_id, "Телефон успешно изменён!")
         handle_menu(message)
     else:
         return
@@ -109,7 +109,7 @@ def process_email_change(message):
 
     email = message.text
     if not email_validator(email):
-        bot.send_message(chat_id, "Извините, ваш Email некорректен. Введите верный Email")
+        bot.send_message(chat_id, "Извините, введённый Email некорректен. Введите верный Email")
         bot.register_next_step_handler(message, process_email_change)
         return
 
@@ -121,7 +121,7 @@ def process_email_change(message):
 
     if resp.status_code == 200:
         users_dict[chat_id]["email"] = email
-        bot.send_message(chat_id, "Email успешно сменён!")
+        bot.send_message(chat_id, "Email успешно изменён!")
         handle_menu(message)
     else:
         return

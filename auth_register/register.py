@@ -23,10 +23,10 @@ def handle_register(message):
 def process_name_step(message):
     cur_user_data["name"] = message.text
     markup = types.InlineKeyboardMarkup(row_width=1)
-    email_btn = types.InlineKeyboardButton('По Email', callback_data="register_email")
-    phone_btn = types.InlineKeyboardButton('По номеру телефона', callback_data="register_phone")
+    email_btn = types.InlineKeyboardButton('📧 По Email', callback_data="register_email")
+    phone_btn = types.InlineKeyboardButton('☎️ По номеру телефона', callback_data="register_phone")
     markup.add(email_btn, phone_btn)
-    bot.send_message(message.chat.id, """<b> Пожалуйста, выберите тип регистрации: </b> """, reply_markup=markup, parse_mode="HTML")
+    bot.send_message(message.chat.id, """<b> Пожалуйста, выберите тип регистрации </b> """, reply_markup=markup, parse_mode="HTML")
     # bot.register_next_step_handler(message, process_register_step)
 
 
@@ -34,10 +34,10 @@ def process_name_step(message):
 def process_register_step(callback):
     chat_id = callback.message.chat.id
     if callback.data == "register_email":
-        bot.send_message(chat_id, "Введите ваш email:")
+        bot.send_message(chat_id, "Введите ваш email")
         bot.register_next_step_handler(callback.message, process_email_step)
     elif callback.data == "register_phone":
-        bot.send_message(chat_id, "Введите ваш номер телефона:")
+        bot.send_message(chat_id, "Введите ваш номер телефона")
         bot.register_next_step_handler(callback.message, process_phone_step)
     else:
         return
@@ -92,7 +92,7 @@ def process_password_step(message, reg_type):
 
     elif reg_type == "email":
         bot.send_message(chat_id, "На указанный Email было выслато сообщение с кодом. Введите его ниже для "
-                                  "подтверждения.")
+                                  "подтверждения")
         body = {
             "email": cur_user_data["email"],
             "password": cur_user_data["password"],
@@ -134,5 +134,5 @@ def process_confirm_reg(message, reg_type):
         users_dict[message.chat.id] = cur_user_data
         handle_menu(message)
     else:
-        bot.send_message(chat_id, "Введённый Вами код неверен, введите его ещё раз:")
+        bot.send_message(chat_id, "Введённый Вами код неверен, повторите ввод ещё раз!")
         bot.register_next_step_handler(message, process_confirm_reg, reg_type)
