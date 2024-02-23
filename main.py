@@ -11,7 +11,7 @@ bot = telebot.TeleBot(os.getenv('BOT_TOKEN'))
 @bot.message_handler(content_types=['text'])
 def get_text_messages(message):
     if message.text == "Привет":
-        bot.send_message(message.from_user.id, "Привет, пошёл нахуй!")
+        bot.send_message(message.from_user.id, "Привет, пошёл !")
     elif message.text == "/help":
         bot.send_message(message.from_user.id, "Напиши Привет")
     else:
