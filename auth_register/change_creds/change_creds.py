@@ -19,7 +19,8 @@ def handle_change_creds(message):
     hello_message = """
         <b> Смена личных данных</b>
 
-    💻 Вы можете сменить свой Email, телефон или пароль!
+💻 Вы можете сменить свой Email, телефон или пароль!
+
 
     """
 
@@ -54,7 +55,7 @@ def process_password_change(message):
         bot.register_next_step_handler(message, process_password_change)
         return
 
-    bot.send_message(chat_id, "Повторите новый пароль")
+    bot.send_message(chat_id, "🔑 Повторите новый пароль!")
 
     def retype_new_password(message):
         password2 = message.text
