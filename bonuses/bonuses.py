@@ -21,7 +21,7 @@ def handle_view_bonuses_list(message):
         details_json = get_info_by_bonus_id(bonus_id)
 
         #Test getting feedback
-        bonus_feedback_details = get_feedback_by_bonus_id(message.from_user.id, bonus_id)
+        bonus_feedback_details = leave_feedback_by_bonus_id(message.from_user.id, bonus_id, "Comment", 5)
 
         result += form_html_message_by_bonus(details_json)
 
@@ -68,9 +68,9 @@ def get_info_by_bonus_id(bonus_id):
     print(response_json)
     return response_json
 
-def get_feedback_by_bonus_id(user_id, bonus_id):
+def leave_feedback_by_bonus_id(user_id, bonus_id, comment, rating):
     url = API_BONUSES_ID_FEEDBACK
-    response = requests.get(url.format(bonus_id), auth=(users_dict[user_id]["username"], users_dict[user_id]["password"]))
+    response = requests.patch(url.format(bonus_id), data={"rating": rating, "comment": comment}, auth=(users_dict[user_id]["username"], users_dict[user_id]["password"]))
 
     response_json = response.json()
     print(response_json)
