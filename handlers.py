@@ -18,7 +18,11 @@ def register(message):
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    handle_start(bot, message)
+    handle_start(message)
+
+@bot.message_handler(commands=['view'])
+def view(message):
+    handle_blood_stations_list(message)
 
 @bot.message_handler(content_types=['text'])
 def message_reply(message):
@@ -28,7 +32,6 @@ def message_reply(message):
         login(message)
     else:
         pass
-
 
 if __name__ == "__main__":
     bot.polling(none_stop=True, interval=0)
