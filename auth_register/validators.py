@@ -26,16 +26,21 @@ def password_validator(password):
             break
         else:
             flag = 0
-            print("Valid Password")
-            break
+            return True
 
     if flag == -1:
-        print("Not a Valid Password ")
+        return False
 
 
 def email_validator(email):
     return validate_email(email)
 
 
-def phone_validator(phone):
-    return phonenumbers.is_possible_number(phonenumbers.parse(phone))
+def phone_validator(phone) -> tuple:
+    if phone.startswith(('7', '8')):
+        phone = '+7' + phone[1:]
+    try:
+        parsed_phone = phonenumbers.parse(phone, 'RU')
+        return phonenumbers.is_possible_number(parsed_phone), phone
+    except phonenumbers.phonenumberutil.NumberParseException:
+        return False, ""

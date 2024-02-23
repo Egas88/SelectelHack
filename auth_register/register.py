@@ -6,7 +6,6 @@ from api import *
 
 cur_user_data = {}
 
-
 def handle_register(message):
     user_id = message.from_user.id
     bot.send_message(user_id, "Введите Ваше имя")
@@ -47,14 +46,16 @@ def process_email_step(message):
     bot.register_next_step_handler(message, process_password_step, "email")
 
 
-def process_phone_step(message, reg_type):
+def process_phone_step(message):
     user_id = message.from_user.id
     phone = message.text
-    if not phone_validator(phone):
+    is_valid, formatted_phone = phone_validator(phone)
+    if not is_valid:
         bot.send_message(user_id, "Извините, ваш телефон некорректен. Введите верный мобильный номер")
         bot.register_next_step_handler(message, process_phone_step)
         return
-    cur_user_data["phone"] = message.text
+
+    cur_user_data["phone"] = formatted_phone
     bot.send_message(user_id, "Введите пароль для Вашей учетной записи", disable_web_page_preview=True)
     bot.register_next_step_handler(message, process_password_step, "phone")
 
@@ -65,7 +66,8 @@ def process_password_step(message, reg_type):
     if not password_validator(password):
         bot.send_message(user_id, "Извините, ваш пароль слишком простой. Не забывайте использовать цифры, строчные и "
                                   "прописные буквы, а также спецсимволы")
-        bot.register_next_step_handler(message, process_password_step)
+        bot.register_next_step_handler(message, process_password_step, reg_type)
+        return
 
     cur_user_data["password"] = message.text
 
@@ -104,11 +106,17 @@ def process_confirm_reg(message, reg_type):
 
     body = {
         "code": code,
-        "user_id": user_id,
-        reg_type: cur_user_data["user_id"]
+        "user_id": cur_user_data["user_id"],
+        reg_type: cur_user_data["email"] if "email" in cur_user_data else cur_user_data["phone"]
     }
 
-    resp = requests.post(API_AUTH_CONFIRM_PHONE_REG, data=body)
+    if reg_type == "email":
+        resp = requests.post(API_AUTH_CONFIRM_EMAIL_REG, data=body)
+    elif reg_type == "phone":
+        resp = requests.post(API_AUTH_CONFIRM_PHONE_REG, data=body)
+    else:
+        return
+
     if resp.status_code == 200:
         cur_user_data["username"] = resp.json()["username"]
         bot.send_message(user_id, "Вы были успешно зарегистрированы!")
