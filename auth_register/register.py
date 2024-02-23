@@ -105,7 +105,7 @@ def process_password_step(message, reg_type):
 
     resp = requests.post(API_AUTH_REGISTRATION, data=body)
     if resp.status_code == 200:
-        cur_user_data["chat_id"] = resp.json()["chat_id"]
+        cur_user_data["user_id"] = resp.json()["user_id"]
         bot.register_next_step_handler(message, process_confirm_reg, reg_type)
     else:
         return
@@ -117,7 +117,7 @@ def process_confirm_reg(message, reg_type):
 
     body = {
         "code": code,
-        "chat_id": cur_user_data["chat_id"],
+        "user_id": cur_user_data["user_id"],
         reg_type: cur_user_data["email"] if "email" in cur_user_data else cur_user_data["phone"]
     }
 
