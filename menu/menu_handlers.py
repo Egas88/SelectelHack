@@ -1,6 +1,7 @@
 from telebot import types
 
 from auth_register.change_creds.change_creds import handle_change_creds
+from blood_station.blood_station import handle_blood_stations_need_list, handle_blood_stations_list
 from bot import bot
 from donation.guide import handle_blood_donation_guide
 
@@ -100,9 +101,9 @@ def process_register_step(callback):
         handle_blood_donation_guide(callback.message)
         pass
     elif callback.data == "sub_menu_blood_stations":
-        pass
+        handle_blood_stations_list(callback.message)
     elif callback.data == "sub_menu_address_needs":
-        pass
+        handle_blood_stations_need_list(callback.message)
     elif callback.data == "sub_menu_game_status":
         pass
     elif callback.data == "sub_menu_games_projects":

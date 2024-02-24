@@ -6,16 +6,15 @@ from cities.cities import get_city_id_by_name
 # def process_blood_stations_step(message):
 
 def handle_blood_stations_need_list(message):
-    if message.text == "/viewNeeds":
-        city_id = get_city_id_by_name("Москва")
-        blood_stations_need = get_blood_stations_with_needs_by_city_id(city_id)["results"]
+    city_id = get_city_id_by_name("Москва")
+    blood_stations_need = get_blood_stations_with_needs_by_city_id(city_id)["results"]
 
-        allowed_blood_stations_need = []
-        for i in range(0, len(blood_stations_need)):
-            current_city_id = int(blood_stations_need[i]["city_id"])
-            if current_city_id is city_id:
-                allowed_blood_stations_need.append(blood_stations_need[i])
-        print_blood_stations_needs_cards(message.from_user.id, allowed_blood_stations_need)
+    allowed_blood_stations_need = []
+    for i in range(0, len(blood_stations_need)):
+        current_city_id = int(blood_stations_need[i]["city_id"])
+        if current_city_id is city_id:
+            allowed_blood_stations_need.append(blood_stations_need[i])
+    print_blood_stations_needs_cards(message.chat.id, allowed_blood_stations_need)
 
 def get_blood_stations_with_needs_by_city_id(city_id):
     url = 'https://hackaton.donorsearch.org/api/needs'
@@ -115,39 +114,30 @@ def get_no_need_group_text(group_no_need):
     return "🔴 " + group_no_need + "\n"
 
 def handle_blood_stations_list(message):
-    # markup = types.ReplyKeyboardMarkup(row_width=1)
-    # email_btn = types.KeyboardButton('По Email')
-    # phone_btn = types.KeyboardButton('По номеру телефона')
-    # markup.add(email_btn, phone_btn)
-    # bot.register_next_step_handler(message, process_blood_stations_step)
+    blood_group = "o_plus"
+    city_id = get_city_id_by_name("Санкт-Петербург")
+    url = 'https://hackaton.donorsearch.org/api/blood_stations/'
+    params = {'blood_group': 'o_plus', 'city_id': city_id}
+    response = requests.get(url=url, params=params)
 
-    if message.text == "/view":
-        blood_group = "o_plus"
-        city_id = get_city_id_by_name("Санкт-Петербург")
-        url = 'https://hackaton.donorsearch.org/api/blood_stations/'
-        params = {'blood_group': 'o_plus', 'city_id': city_id}
-        response = requests.get(url=url, params=params)
+    blood_stations = response.json()["results"]
 
-        blood_stations = response.json()["results"]
+    allowed_blood_stations = []
+    for j in range(0, len(blood_stations)):
+        if blood_stations[j]["city_id"] is city_id:
+            allowed_blood_stations.append(blood_stations[j])
 
-        allowed_blood_stations = []
-        for j in range(0, len(blood_stations)):
-            if blood_stations[j]["city_id"] is city_id:
-                allowed_blood_stations.append(blood_stations[j])
+    blood_station_ids = [value["id"] for value in allowed_blood_stations]
 
-        blood_station_ids = [value["id"] for value in allowed_blood_stations]
+    # Check BS needs
+    # for blood_station_id in blood_station_ids:
+    #     x = get_blood_stations_needs_by_id(blood_station_id)
+    # y = get_blood_stations_with_needs_by_city_id(city_id)
 
-        # Check BS needs
-        # for blood_station_id in blood_station_ids:
-        #     x = get_blood_stations_needs_by_id(blood_station_id)
-        # y = get_blood_stations_with_needs_by_city_id(city_id)
+    print(blood_station_ids)
 
-        print(blood_station_ids)
-
-        print_general_info(message.from_user.id, city_id, blood_group)
-        print_blood_stations_cards(message.from_user.id, blood_station_ids)
-    else:
-        raise Exception("Non valid message")
+    #print_general_info(message.chat.id, city_id, blood_group)
+    print_blood_stations_cards(message.chat.id, blood_station_ids)
 
 def print_general_info(user_id, city_id, blood_group):
     msgResult = """
