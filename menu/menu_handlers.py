@@ -3,17 +3,14 @@ from telebot import types
 from auth_register.change_creds.change_creds import handle_change_creds
 from blood_station.blood_station import handle_blood_stations_need_list, handle_blood_stations_list
 from bot import bot
+from donation.donation import handle_donation_adding
 from donation.guide import handle_blood_donation_guide
 
 
 def handle_donations_menu(message):
     markup = types.InlineKeyboardMarkup(row_width=1)
     add_donation_button = types.InlineKeyboardButton('Добавить донацию', callback_data='sub_menu_add_donation')
-    plan_donation_button = types.InlineKeyboardButton('Запланировать донацию', callback_data='sub_menu_plan_donation')
-    specific_donation_button = types.InlineKeyboardButton('Запросить конкретную донацию',
-                                                          callback_data='sub_menu_specific_donation')
-    blood_donation_guide_button = types.InlineKeyboardButton('Памятка по подготовке к сдачи крови',
-                                                             callback_data='sub_menu_blood_donation_guide')
+    blood_donation_guide_button = types.InlineKeyboardButton('Памятка по подготовке к сдачи крови', callback_data='sub_menu_blood_donation_guide')
 
     back_button = types.InlineKeyboardButton('↩️ Назад ', callback_data='change_go_back')
     msg_txt = """
@@ -24,8 +21,7 @@ def handle_donations_menu(message):
 📃 Также можете получить памятку по подготовке к сдаче крови! 
 
     """
-    markup.add(add_donation_button, plan_donation_button, specific_donation_button, blood_donation_guide_button,
-               back_button)
+    markup.add(add_donation_button, blood_donation_guide_button, back_button)
     bot.send_message(message.chat.id, msg_txt, reply_markup=markup, parse_mode="HTML")
 
 
@@ -92,14 +88,9 @@ def handle_personal_menu(message):
 @bot.callback_query_handler(func=lambda call: call.data.startswith('sub_menu_'))
 def process_register_step(callback):
     if callback.data == "sub_menu_add_donation":
-        pass
-    elif callback.data == "sub_menu_plan_donation":
-        pass
-    elif callback.data == "sub_menu_specific_donation":
-        pass
+        handle_donation_adding(callback.message)
     elif callback.data == "sub_menu_blood_donation_guide":
         handle_blood_donation_guide(callback.message)
-        pass
     elif callback.data == "sub_menu_blood_stations":
         handle_blood_stations_list(callback.message)
     elif callback.data == "sub_menu_address_needs":

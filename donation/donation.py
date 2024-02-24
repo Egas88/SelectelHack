@@ -68,14 +68,14 @@ def choose_is_out(message):
 
 
 def create_regions_markup(page = 1, per_page = 10):
-    responce = requests.get(f"https://hackaton.donorsearch.org{API_REGIONS}", params={"country": "1"}).json()
+    responce = requests.get(f"{API_REGIONS}", params={"country": "1"}).json()
     responce = responce["results"]
     markup = InlineKeyboardMarkup()
     total_pages = len(responce) // per_page + (1 if len(responce) % per_page > 0 else 0)
     start = (page - 1) * per_page
     end = start + per_page
     for region in responce[start:end]:
-        markup.add(InlineKeyboardButton(region["title"], callback_data=f"donation_region-{region["id"]}"))
+        markup.add(InlineKeyboardButton(region["title"], callback_data=f"donation_region-{region['id']}"))
     
     row = []
     if page > 1:
@@ -88,14 +88,14 @@ def create_regions_markup(page = 1, per_page = 10):
 
 
 def create_cities_markup(region_id, page = 1, per_page = 10):
-    responce = requests.get(f"https://hackaton.donorsearch.org{API_CITIES}", params={"country": "1", "region": f"{region_id}"}).json()
+    responce = requests.get(f"{API_CITIES}", params={"country": "1", "region": f"{region_id}"}).json()
     responce = responce["results"]
     markup = InlineKeyboardMarkup()
     total_pages = len(responce) // per_page + (1 if len(responce) % per_page > 0 else 0)
     start = (page - 1) * per_page
     end = start + per_page
     for city in responce[start:end]:
-        markup.add(InlineKeyboardButton(city["title"], callback_data=f"donation_region_city-{city["id"]}"))
+        markup.add(InlineKeyboardButton(city["title"], callback_data=f"donation_region_city-{city['id']}"))
     
     row = []
     if page > 1:
@@ -120,7 +120,7 @@ def choose_region(message):
 
 
 def create_blood_stations_markup(page = 1, per_page = 10):
-    responce = requests.get(f"https://hackaton.donorsearch.org{API_BLOOD_STATIONS}", params={"city_id": f"{request_data["city_id"]}"}).json()
+    responce = requests.get(f"{API_BLOOD_STATIONS}", params={"city_id": f"{request_data['city_id']}"}).json()
     responce = responce["results"]
     markup = InlineKeyboardMarkup()
     total_pages = len(responce) // per_page + (1 if len(responce) % per_page > 0 else 0)
@@ -316,8 +316,8 @@ def select_region(call: CallbackQuery):
     elif call.data.startswith("donation_region_city-"):
         city_id = call.data.split('-')[1]
         request_data["city_id"] = city_id
-        displayed_data["city"] = requests.get(f"https://hackaton.donorsearch.org{API_CITIES}/{city_id}").json()["results"]["title"]
-        print(displayed_data["city"])
+        #displayed_data["city"] = requests.get(f"{API_CITIES}/{city_id}").json()["results"]["title"]
+        #print(displayed_data["city"])
         message = call.message
         choose_blood_station(message)
     elif call.data.startswith("donation_region_back_to_regions"):
@@ -334,9 +334,9 @@ def select_blood_station(call: CallbackQuery):
     elif call.data.startswith("donation_blood_station-"):
         blood_station_id = call.data.split('-')[1]
         request_data["blood_station_id"] = blood_station_id
-        displayed_data["blood_station"] = call.data.split('-')[2]
-        print(request_data["blood_station_id"])
-        print(displayed_data["blood_station"])
+        #displayed_data["blood_station"] = call.data.split('-')[2]
+        #print(request_data["blood_station_id"])
+        #print(displayed_data["blood_station"])
         #TODO: написать реквест на создание записи
         #TODO: написать смену данных записи
         # message = call.message
