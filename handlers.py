@@ -7,7 +7,8 @@ from menu.menu import handle_menu
 from start.start import handle_start
 from auth_register.users import users_dict
 from bot import bot
-from blood_station.blood_station import handle_blood_stations_list
+from blood_station.blood_station import handle_blood_stations_list, handle_blood_stations_need_list
+
 
 @bot.message_handler(commands=['start'])
 def start(message):
@@ -16,6 +17,10 @@ def start(message):
 @bot.message_handler(commands=['view'])
 def view(message):
     handle_blood_stations_list(message)
+
+@bot.message_handler(commands=['viewNeeds'])
+def view_needs(message):
+    handle_blood_stations_need_list(message)
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('start_'))
 def message_reply(callback):
@@ -41,8 +46,6 @@ def message_reply(callback):
         pass
     else:
         return
-
-
 
 if __name__ == "__main__":
     bot.polling(none_stop=True, interval=0)
