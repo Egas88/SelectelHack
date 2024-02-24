@@ -29,9 +29,6 @@ def handle_donations_menu(message):
     markup.add(add_donation_button, see_donations_button , plan_donation_button, see_planned_donations_button, blood_donation_guide_button, back_button)
     bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
     bot.send_message(chat_id=message.chat.id, text = msg_txt, reply_markup=markup, parse_mode="HTML")
-    # bot.edit_message_text(chat_id=message.chat.id, message_id=message.chat.id,text=msg_txt, reply_markup=markup, parse_mode="HTML")
-
-
 
 def handle_blood_centers_menu(message):
     markup = types.InlineKeyboardMarkup(row_width=1)
@@ -41,7 +38,7 @@ def handle_blood_centers_menu(message):
                                                       callback_data='sub_menu_address_needs')
     back_button = types.InlineKeyboardButton('↩️ Назад ', callback_data='change_go_back')
     msg_txt = """
-    <b> Центры крови 🩸 </b>
+🩸 <b>Центры крови</b>
     
 🗺️ Здесь вы можете узнать расположение центров крови. 
 

@@ -224,29 +224,29 @@ def choose_is_need(message):
             text=f"""
     Вы выбрали следующие параметры:
 
-    <b>Тип крови</b>
-    {displayed_data["blood_type"]}
+<b>Тип крови</b>
+{displayed_data["blood_type"]}
 
-    <b>Дата</b>
-    {displayed_data["plan_date"]}
+<b>Дата</b>
+{displayed_data["plan_date"]}
 
-    <b>Тип донации</b>
-    {displayed_data["payment_type"]}
+<b>Тип донации</b>
+{displayed_data["payment_type"]}
 
-    <b>Место сдачи</b>
-    {displayed_data["is_out"]}
+<b>Место сдачи</b>
+{displayed_data["is_out"]}
 
-    <b>Город</b>
-    {displayed_data["city"]}
+<b>Город</b>
+{displayed_data["city"]}
 
-    {f"""<b>Центр крови</b>
-    {displayed_data["blood_station"]}""" if displayed_data["is_out"] == "false" else ""}
+{f'''<b>Центр крови</b>
+{displayed_data["blood_station"]}''' if displayed_data["is_out"] == "false" else ""}
 
-    <b> Справка </b>
-    {displayed_data["upload_now"]}
+<b> Справка </b>
+{displayed_data["upload_now"]}
 
-    <b> {header} </b>
-    {file_name}
+<b> {header} </b>
+{file_name}
             """,
             reply_markup=markup,
             parse_mode="HTML"

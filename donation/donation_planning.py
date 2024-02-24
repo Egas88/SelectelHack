@@ -193,8 +193,8 @@ def choose_is_need(message):
 <b>Город</b>
 {displayed_data["city"]}
 
-{f"""<b>Центр крови</b>
-{displayed_data["blood_station"]}""" if displayed_data["is_out"] == "false" else ""}
+{f'''<b>Центр крови</b>
+{displayed_data["blood_station"]}''' if displayed_data["is_out"] == "false" else ""}
 """,
         reply_markup=markup,
         parse_mode="HTML"
@@ -202,7 +202,7 @@ def choose_is_need(message):
 
 
 def create_notification_message():
-    return f"""Напомнаем вам о планированной донации сегодня {f"""в {displayed_data["blood_station"]}""" if displayed_data["is_out"] == "false" else ""}"""
+    return f"""Напомнаем вам о планированной донации сегодня {f'''в {displayed_data["blood_station"]}''' if displayed_data["is_out"] == "false" else ""}"""
 
 
 # Дальше бога нет, тут функции календаря чисто
