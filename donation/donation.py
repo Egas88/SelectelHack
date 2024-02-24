@@ -23,7 +23,7 @@ def handle_donation_adding(message):
     bot.edit_message_text(
         chat_id=message.chat.id,
         message_id=message.message_id,
-        text="Выберите тип крови:", 
+        text="🩸 Выберите тип крови:", 
         reply_markup=markup
     )
 
@@ -38,11 +38,11 @@ def choose_payment_type(message):
         chat_id=message.chat.id, 
         message_id=message.message_id, 
         text = """
-        <b> Безвозмездно </b>
+        <b>🤲 Безвозмездно </b>
 Питание или компенсация питания
 (5% МРОТ порядка 700-1500 ₽. Учитывается при получении звания Почетного донора.)
 
-<b> Платно </b>
+<b>💵 Платно </b>
 Деньги или социальная поддержка. Не учитывается при получении звания почетного донора
 
 Выберите тип донации: 
@@ -237,8 +237,8 @@ def choose_is_need(message):
 <b>Город</b>
 {displayed_data["city"]}
 
-<b>Центр крови</b>
-{displayed_data["blood_station"]}
+{f"""<b>Центр крови</b>
+{displayed_data["blood_station"]}""" if displayed_data["is_out"] == "false" else ""}
 
 <b> Справка </b>
 {displayed_data["upload_now"]}
@@ -395,7 +395,10 @@ def select_region(call: CallbackQuery):
         request_data["city_id"] = city_id
         displayed_data["city"] = requests.get(f"{API_CITIES}{city_id}/").json()["title"]
         message = call.message
-        choose_blood_station(message)
+        if request_data["is_out"] == "true":
+            download_pdf(message)
+        else:
+            choose_blood_station(message)
     elif call.data.startswith("donation_region_back_to_regions"):
         markup = create_regions_markup()
         bot.edit_message_text(text="Выберите регион: ", chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup)
@@ -424,6 +427,10 @@ def select_send_or_change(call: CallbackQuery):
         bot.edit_message_text(
             chat_id=call.message.chat.id,
             message_id=call.message.message_id,
+            text="Ваша заявка была отправлена!",
+        )
+        bot.send_message(
+            chat_id=call.message.chat.id,
             text="Ваша заявка была отправлена!",
         )
         handle_menu(call.message)

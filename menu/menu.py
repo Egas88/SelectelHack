@@ -50,5 +50,6 @@ def handle_menu(message):
 🚀 Начните пользоваться DonorSearch прямо сейчас
 
     """
+    bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
     bot.send_photo(message.chat.id, photo=open(img, 'rb'), caption=msg_text, reply_markup=markup, parse_mode="HTML")
 

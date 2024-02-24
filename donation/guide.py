@@ -28,4 +28,4 @@ def handle_blood_donation_guide(message):
 
     """
     markup.add(guide_link, back_button)
-    bot.send_message(message.chat.id, msg_txt, reply_markup=markup, parse_mode="HTML")
+    bot.edit_message_text(chat_id=message.chat.id, message_id=message.message_id, text=msg_txt, reply_markup=markup, parse_mode="HTML")

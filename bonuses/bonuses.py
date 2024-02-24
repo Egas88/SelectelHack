@@ -35,6 +35,7 @@ def handle_view_bonuses_list(message):
     back_button = types.InlineKeyboardButton('↩️ Назад ', callback_data='change_go_back')
     markup.add(back_button)
 
+    bot.delete_message(chat_id=user_id, message_id=message.message_id)
     bot.send_message(user_id, result, reply_markup=markup, parse_mode="HTML", disable_web_page_preview=True)
 
 def form_html_message_by_bonus(bonus_details_json):
