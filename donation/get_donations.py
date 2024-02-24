@@ -2,7 +2,6 @@ from bot import bot
 from api import API_DONATION_PLAN, API_DONATIONS
 from auth_register.users import get_username, get_password
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
-from menu.menu_handlers import handle_donations_menu
 import requests
 
 
@@ -30,7 +29,7 @@ def create_donations_markup(message, is_plan, page = 1, per_page = 10):
     if row:
         markup.row(*row)
 
-    markup.row(InlineKeyboardButton('↩️  Назад к выбору ', callback_data='donations_list_go_to_menu'))
+    markup.row(InlineKeyboardButton('↩️  Назад к выбору ', callback_data="menu_donations"))
     markup.row(InlineKeyboardButton('↩️  Назад в меню ', callback_data='change_go_back'))
 
     return markup
@@ -77,8 +76,6 @@ def list_donations(call: CallbackQuery):
         else:
             text= "Добавленные донации"
         bot.edit_message_text(text=text, chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup)
-    elif call.data.startswith('donations_list_go_to_menu'):
-        handle_donations_menu(call.message)
     elif call.data.startswith('donations_list_cell'):
         donation_id = call.data.split('-')[1]
         markup = InlineKeyboardMarkup()
