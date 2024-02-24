@@ -1,0 +1,6 @@
+requests
+telebot
+calendar
+dotenv
+datetime
+os
