@@ -4,7 +4,8 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQu
 import calendar
 import datetime
 from bot import bot
-from api import API_REGIONS, API_CITIES, API_BLOOD_STATIONS
+from api import API_REGIONS, API_CITIES, API_BLOOD_STATIONS, API_DONATIONS
+from auth_register.users import get_username, get_password
 from menu.menu import handle_menu
 
 
@@ -62,7 +63,7 @@ def choose_is_out(message):
         chat_id=message.chat.id, 
         message_id=message.message_id, 
         text = """
-        <b> Стационарый пункт </b>
+<b> Стационарый пункт </b>
 Центр крови или станция переливания в вашем городе
 
 <b>Выездная акция</b>
@@ -164,15 +165,60 @@ def choose_blood_station(message):
     )
 
 
+def download_pdf(message):
+    markup = types.InlineKeyboardMarkup(row_width=2)
+    upload_now = types.InlineKeyboardButton("Загрузить сейчас", callback_data="donation_upload-true")
+    upload_later = types.InlineKeyboardButton("Загрузить потом", callback_data="donation_upload-false")
+    back_button = types.InlineKeyboardButton('↩️ Назад в меню ', callback_data='change_go_back')
+    markup.add(upload_now, upload_later, back_button)
+    bot.edit_message_text(
+        chat_id=message.chat.id,
+        message_id=message.message_id,
+        text="""
+<b> Загрузить сейчас </b>
+Справку выданную в центре крови.
+
+<b> Загрузить потом </b>
+Справку можно будет загрузить позже. Донация без справки не будет учитываться для пути почетного донора.
+        """,
+        reply_markup=markup,
+        parse_mode="HTML"
+    )
+
+
+@bot.message_handler(content_types=['document'])
+def handle_docs(message):
+    markup = types.InlineKeyboardMarkup()
+    back_button = types.InlineKeyboardButton('↩️ Назад в меню ', callback_data='change_go_back')
+    markup.add(back_button)
+    if message.document.mime_type == 'application/pdf':
+        #file_info = bot.get_file(message.document.file_id)
+        displayed_data["file_name"] = message.document.file_name
+        # downloaded_file = bot.download_file(file_info.file_path)
+
+        #TODO: save file in BD
+        # # Здесь можно добавить логику для сохранения файла, например:
+        # with open(f"/mnt/data/{message.document.file_name}", 'wb') as new_file:
+        #     new_file.write(downloaded_file)
+        bot.send_message(chat_id=message.chat.id, text="Pdf файл загружен!", reply_markup=markup)
+        choose_is_need(message)
+    else:
+        bot.send_message(message, "Пожалуйста, отправьте файл в формате PDF.", reply_markup=markup)
+
+
 def choose_is_need(message):
     markup = types.InlineKeyboardMarkup()
     send = types.InlineKeyboardButton("Отправить", callback_data="donation_send-true")
     change = types.InlineKeyboardButton("Изменить данные", callback_data="donation_send-false")
     back_button = types.InlineKeyboardButton('↩️ Назад в меню ', callback_data='change_go_back')
     markup.add(send, change, back_button)
-    bot.edit_message_text(
+    file_name = ""
+    header = ""
+    if displayed_data["upload_now"] == "Загрузить сейчас":
+        header = "Справка выданная в центре крови."
+        file_name = displayed_data["file_name"]
+    bot.send_message(
         chat_id=message.chat.id,
-        message_id=message.message_id,
         text=f"""
 Вы выбрали следующие параметры:
 
@@ -193,31 +239,16 @@ def choose_is_need(message):
 
 <b>Центр крови</b>
 {displayed_data["blood_station"]}
+
+<b> Справка </b>
+{displayed_data["upload_now"]}
+
+<b> {header} </b>
+{file_name}
         """,
         reply_markup=markup,
+        parse_mode="HTML"
     )
-
-
-# def choose_is_doc_upload(message):
-#     markup = types.InlineKeyboardMarkup(row_width=2)
-#     upload_now = types.InlineKeyboardButton("Загрузить сейчас", callback_data="donation_is_upload-true")
-#     upload_later = types.InlineKeyboardButton("Загрузить потом", callback_data="donation_is_upload-false")
-#     markup.add(upload_now, upload_later)
-#     bot.edit_message_text(
-#         chat_id=message.chat.id, 
-#         message_id=message.message_id, 
-#         text = """
-#         <b> Загрузить сейчас </b>
-# Справку выданную в центре крови.
-
-# <b>Загрузить потом</b>
-# Справку можно будет загрузить позже. Донация без справки не будет учитываться для пути почетного донора.
-
-#         """, 
-#         reply_markup=markup,
-#         parse_mode="HTML",
-#     )
-
 
 
 # Дальше бога нет, тут функции календаря чисто
@@ -260,14 +291,6 @@ def create_month_year_selection(year, month):
     return markup
 
 
-def write_data(message):
-    bot.edit_message_text(
-        chat_id=message.chat.id,
-        message_id=message.message_id,
-        text="Введите вы ввели данные: " + str(request_data),
-    )
-
-
 def get_calendar(message):
     now = datetime.datetime.now()
     markup = create_calendar(now.year, now.month)
@@ -282,7 +305,7 @@ def get_calendar(message):
 @bot.callback_query_handler(func=lambda call: call.data.startswith('donation_blood_type'))
 def select_blood_type(call: CallbackQuery):
         blood_type = call.data.split('-')[1]
-        request_data["blood_type"] = blood_type
+        request_data["blood_class"] = blood_type
         displayed_data["blood_type"] = blood_types[blood_type]
         message = call.message
         get_calendar(message)
@@ -290,11 +313,19 @@ def select_blood_type(call: CallbackQuery):
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('donation_data'))
 def data_select(call: CallbackQuery):
-    request_data["plan_date"] = call.data.split('-')[1] + "-" + call.data.split('-')[2] + "-" + call.data.split('-')[3]
-    date = call.data.split('-')[4]
-    displayed_data["plan_date"] = date
-    message = call.message
-    choose_payment_type(message)
+    if datetime.datetime.now().date() > datetime.datetime(year=int(call.data.split('-')[1]), month=int(call.data.split('-')[2]), day=int(call.data.split('-')[3])).date():
+        bot.edit_message_text(
+            chat_id=call.message.chat.id,
+            message_id=call.message.message_id,
+            text="Планируемая дата не может быть раньше, чем сегодня. Выберите другую дату.",
+            reply_markup=create_calendar(datetime.datetime.now().year, datetime.datetime.now().month),
+        )
+    else:
+        request_data["donate_at"] = call.data.split('-')[1] + "-" + call.data.split('-')[2] + "-" + call.data.split('-')[3]
+        date = call.data.split('-')[4]
+        displayed_data["plan_date"] = date
+        message = call.message
+        choose_payment_type(message)
 
 
 
@@ -381,14 +412,15 @@ def select_blood_station(call: CallbackQuery):
         request_data["blood_station_id"] = blood_station_id
         displayed_data["blood_station"] = requests.get(f"{API_BLOOD_STATIONS}{blood_station_id}/").json()["title"]
         message = call.message
-        choose_is_need(message)
+        download_pdf(message)
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('donation_send'))
 def select_send_or_change(call: CallbackQuery):
     is_send = call.data.split('-')[1]
     if is_send == "true":
-        #TODO: Написать запрос
+        request_data["image_id"] = "1"
+        requests.post(API_DONATIONS, data=request_data, auth=(get_username, get_password))
         bot.edit_message_text(
             chat_id=call.message.chat.id,
             message_id=call.message.message_id,
@@ -397,3 +429,21 @@ def select_send_or_change(call: CallbackQuery):
         handle_menu(call.message)
     elif is_send == "false":
         handle_donation_adding(call.message)
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('donation_upload'))
+def select_back(call: CallbackQuery):
+    if call.data.split("-")[1] == "true":
+        request_data["with_image"] = "true"
+        displayed_data["upload_now"] = "Загрузить сейчас"
+        bot.edit_message_text(
+            chat_id=call.message.chat.id,
+            message_id=call.message.message_id,
+            text="Загрузите pdf-файл",
+        )
+        bot.register_next_step_handler(call.message, handle_docs)
+    else:
+        request_data["with_image"] = "false"
+        displayed_data["upload_now"] = "Загрузить потом"
+        message = call.message
+        choose_is_need(message)
