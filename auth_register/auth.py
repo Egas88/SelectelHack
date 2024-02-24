@@ -95,7 +95,9 @@ def process_password_step(message):
 
     resp = requests.post(API_AUTH_LOGIN, data=body)
     if resp.status_code == 200:
-        bot.send_message(chat_id, "✔️ Вы были успешно авторизированы!")
+        new_message = bot.send_message(chat_id, "✔️ Вы были успешно авторизированы!")
+        for i in range(0, 3):
+            bot.delete_message(chat_id=message.chat.id, message_id=new_message.message_id - (2 + i))
         users_dict[message.chat.id] = cur_user_data
         users.additional_input = True
         users.is_possible_input = True

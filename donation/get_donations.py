@@ -18,9 +18,14 @@ def create_donations_markup(message, is_plan, page = 1, per_page = 10):
     end = start + per_page
     for station in responce[start:end]:
         if is_plan:
-            markup.add(InlineKeyboardButton(text = f"Вы запланировали посещение на {station["plan_date"]}. {f"На выездную акцию в {station["city"]["title"]}" if station["is_out"] == "true" else f"В центре крови {station['blood_station']['title']}" if station["blood_station"] is not None else ""}", callback_data=f"donations_list_cell-{station['id']}"))
+            markup.add(InlineKeyboardButton(text=f"Вы запланировали посещение на {station['plan_date']}.", callback_data=f"ignore"))
         else:
-            markup.add(InlineKeyboardButton(text = f"Вы были записаны на {station["donate_at"]}. {f"На выездную акцию в {station["city"]["title"]}" if station["is_out"] == "true" else f"В центре крови {station['blood_station']['title']}" if station["blood_station"] is not None else ""}", callback_data=f"donations_list_cell-{station['id']}"))
+            markup.add(InlineKeyboardButton(text=f"Вы были записаны на {station['donate_at']}.", callback_data=f"ignore"))
+        # if is_plan:
+        #     markup.add(InlineKeyboardButton(text = f"Вы запланировали посещение на {station["plan_date"]}. {f"На выездную акцию в {station["city"]["title"]}" if station["is_out"] == "true" else f"В центре крови {station['blood_station']['title']}" if station["blood_station"] is not None else ""}", callback_data=f"donations_list_cell-{station['id']}"))
+        # else:
+        #     markup.add(InlineKeyboardButton(text = f"Вы были записаны на {station["donate_at"]}. {f"На выездную акцию в {station["city"]["title"]}" if station["is_out"] == "true" else f"В центре крови {station['blood_station']['title']}" if station["blood_station"] is not None else ""}", callback_data=f"donations_list_cell-{station['id']}"))
+
     row = []
     if page > 1:
         row.append(InlineKeyboardButton('⬅️', callback_data=f'donations_list_page-{page-1}-{is_plan}'))
