@@ -1,9 +1,44 @@
 import requests
 from telebot import types
+from telebot.types import CallbackQuery
+
 from bot import bot
 from cities.cities import get_city_id_by_name
 
 # def process_blood_stations_step(message):
+from donation.donation import create_regions_markup, create_cities_markup, choose_blood_station
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('donation_region'))
+def select_region(call: CallbackQuery):
+    if call.data.startswith("donation_region_page"):
+        page = int(call.data.split('-')[1])
+        markup = create_regions_markup(page=page)
+        bot.edit_message_text(text="Выберите регион: ", chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup)
+    elif call.data.startswith("donation_region-"):
+        region_id = call.data.split('-')[1]
+        markup = create_cities_markup(region_id)
+        bot.edit_message_text(text="Выберите город: ", chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup)
+    elif call.data.startswith("donation_region_city_page"):
+        region_id = call.data.split('-')[1]
+        page = int(call.data.split('-')[2])
+        markup = create_cities_markup(region_id, page=page)
+        bot.edit_message_text(text="Выберите город: ", chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup)
+    elif call.data.startswith("donation_region_city-"):
+        city_id = call.data.split('-')[1]
+        #request_data["city_id"] = city_id
+        #displayed_data["city"] = requests.get(f"https://hackaton.donorsearch.org{API_CITIES_ID.format(id=city_id)}").json()["results"]["title"]
+        #print(displayed_data["city"])
+        message = call.message
+        choose_blood_station(message)
+    elif call.data.startswith("donation_region_back_to_regions"):
+        markup = create_regions_markup()
+        bot.edit_message_text(text="Выберите регион: ", chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup)
+
+def handle_test(callback):
+    page = int(callback.data.split('-')[1])
+    markup = create_regions_markup(page=page)
+    bot.edit_message_text(text="Выберите регион: ", chat_id=callback.message.chat.id, message_id=callback.message.message_id, reply_markup=markup)
 
 def handle_blood_stations_need_list(message):
     city_id = get_city_id_by_name("Москва")
