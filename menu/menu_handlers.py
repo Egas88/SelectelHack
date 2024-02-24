@@ -85,6 +85,12 @@ def handle_personal_menu(message):
     bot.send_message(message.chat.id, msg_txt, reply_markup=markup, parse_mode="HTML")
 
 
+def handle_articles_menu(message):
+    pass
+
+
+
+
 @bot.callback_query_handler(func=lambda call: call.data.startswith('sub_menu_'))
 def process_register_step(callback):
     if callback.data == "sub_menu_add_donation":
@@ -94,7 +100,6 @@ def process_register_step(callback):
     elif callback.data == "sub_menu_blood_stations":
         handle_blood_stations_list(callback.message)
     elif callback.data == "sub_menu_address_needs":
-        #handle_test(callback)
         handle_blood_stations_need_list(callback.message)
     elif callback.data == "sub_menu_game_status":
         pass

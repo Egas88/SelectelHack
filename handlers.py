@@ -24,13 +24,10 @@ def start(message):
 
     handle_start(message)
 
+
 @bot.message_handler(commands=['view'])
 def view(message):
     handle_blood_stations_list(message)
-
-# @bot.message_handler(commands=['viewNeeds'])
-# def view_needs(message):
-#     handle_blood_stations_need_list(message)
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('start_'))
 def message_reply(callback):
@@ -60,8 +57,13 @@ def message_reply(callback):
         handle_gamification_menu(callback.message)
     elif callback.data == "menu_personal":
         handle_personal_menu(callback.message)
+    elif callback.data == "menu_articles":
+        handle_articles_menu(callback.message)
+    elif callback.data == "menu_bonuses":
+        pass
     else:
         return
+
 
 if __name__ == "__main__":
     bot.polling(none_stop=True, interval=0)

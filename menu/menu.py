@@ -31,11 +31,15 @@ def handle_menu(message):
     # back_button = types.InlineKeyboardButton('↩️ Назад ', callback_data='change_go_back')
 
     ######
-    # TODO Добавить этот функционал в одну из вкладок/в любое удобное место
+
+    # Статьи
     articles_btn = types.InlineKeyboardButton('Статьи из журнала', callback_data='menu_articles')
+
+    # Бонусы
     bonuses_btn = types.InlineKeyboardButton('Запросить бонусы', callback_data='menu_bonuses')
 
-    markup.add(donation_btn, centers_btn, gamification_btn, personal_btn)
+    ######
+    markup.add(donation_btn, centers_btn, gamification_btn, personal_btn, articles_btn, bonuses_btn)
 
     img = "img/logo.jpg"
     msg_text = """
