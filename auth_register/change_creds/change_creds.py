@@ -32,6 +32,9 @@ def handle_change_creds(message):
 def process_register_step(callback):
     chat_id = callback.message.chat.id
     if callback.data == "change_email":
+        if users.is_reg or users.is_login or users.is_change_pass or users.is_change_phone or users.is_change_email:
+            return
+        users.is_change_email = True
         if not users.is_possible_input:
             return
         else:
@@ -39,6 +42,9 @@ def process_register_step(callback):
         bot.send_message(chat_id, "📧 Введите новый email:")
         bot.register_next_step_handler(callback.message, process_email_change)
     elif callback.data == "change_phone":
+        if users.is_reg or users.is_login or users.is_change_pass or users.is_change_phone or users.is_change_email:
+            return
+        users.is_change_phone = True
         if not users.is_possible_input:
             return
         else:
@@ -46,6 +52,9 @@ def process_register_step(callback):
         bot.send_message(chat_id, "☎️ Введите новый телефона:")
         bot.register_next_step_handler(callback.message, process_phone_change)
     elif callback.data == "change_password":
+        if users.is_reg or users.is_login or users.is_change_pass or users.is_change_phone or users.is_change_email:
+            return
+        users.is_change_pass = True
         if not users.is_possible_input:
             return
         else:
@@ -53,6 +62,12 @@ def process_register_step(callback):
         bot.send_message(chat_id, "🔑 Введите новый пароль!")
         bot.register_next_step_handler(callback.message, process_password_change)
     elif callback.data == "change_go_back":
+        users.is_reg = False
+        users.is_login = False
+        users.is_change_pass = False
+        users.is_change_phone = False
+        users.is_change_email = False
+        users.is_possible_input = True
         handle_menu(callback.message)
     else:
         return
@@ -88,6 +103,7 @@ def process_password_change(message):
         if resp.status_code == 200:
             users_dict[chat_id]["password"] = password1
             bot.send_message(chat_id, "Пароль успешно изменён!")
+            users.is_change_pass = False
             users.is_possible_input = True
 
             handle_menu(message)
@@ -115,6 +131,7 @@ def process_phone_change(message):
     if resp.status_code == 200:
         users_dict[chat_id]["phone"] = formatted_phone
         bot.send_message(chat_id, "Телефон успешно изменён!")
+        users.is_change_phone = False
         users.is_possible_input = True
 
         handle_menu(message)
@@ -140,6 +157,7 @@ def process_email_change(message):
     if resp.status_code == 200:
         users_dict[chat_id]["email"] = email
         bot.send_message(chat_id, "Email успешно изменён!")
+        users.is_change_email = False
         users.is_possible_input = True
 
         handle_menu(message)

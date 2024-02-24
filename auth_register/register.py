@@ -33,10 +33,12 @@ def process_name_step(message):
     markup = types.InlineKeyboardMarkup(row_width=1)
     email_btn = types.InlineKeyboardButton('📧 По Email', callback_data="register_email")
     phone_btn = types.InlineKeyboardButton('☎️ По номеру телефона', callback_data="register_phone")
-    markup.add(email_btn, phone_btn)
+    back_button = types.InlineKeyboardButton('↩️ В начало ', callback_data='back_start')
+
+    markup.add(email_btn, phone_btn, back_button)
 
     if users.additional_input:
-        users.additional_input = False
+        users.additional_input = True
         bot.send_message(message.chat.id, """<b> Пожалуйста, выберите тип регистрации </b> """, reply_markup=markup, parse_mode="HTML")
     else:
         return
@@ -49,14 +51,14 @@ def process_register_step(callback):
             return
         else:
             users.additional_input = False
-        bot.send_message(chat_id, "Введите ваш email")
+        bot.send_message(chat_id, "✏️  Введите ваш email")
         bot.register_next_step_handler(callback.message, process_email_step)
     elif callback.data == "register_phone":
         if not users.additional_input:
             return
         else:
             users.additional_input = False
-        bot.send_message(chat_id, "Введите ваш номер телефона")
+        bot.send_message(chat_id, "✏️  Введите ваш номер телефона")
         bot.register_next_step_handler(callback.message, process_phone_step)
     else:
         return
@@ -174,6 +176,7 @@ def process_confirm_reg(message, reg_type):
         bot.send_message(chat_id, "✔️ Вы были успешно зарегистрированы!")
         users_dict[message.chat.id] = cur_user_data
         users.additional_input = True
+        users.is_reg = False
         users.is_possible_input = True
         handle_menu(message)
 

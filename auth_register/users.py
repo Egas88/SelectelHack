@@ -2,6 +2,12 @@ users_dict = {}
 is_possible_input = True
 additional_input = True
 
+is_reg = False
+is_login = False
+is_change_pass = False
+is_change_phone = False
+is_change_email = False
+
 
 def get_username(chat_id):
     if chat_id in users_dict:

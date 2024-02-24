@@ -23,6 +23,8 @@ def handle_donations_menu(message):
     """
     markup.add(add_donation_button, blood_donation_guide_button, back_button)
     bot.send_message(message.chat.id, msg_txt, reply_markup=markup, parse_mode="HTML")
+    # bot.edit_message_text(chat_id=message.chat.id, message_id=message.chat.id,text=msg_txt, reply_markup=markup, parse_mode="HTML")
+
 
 
 def handle_blood_centers_menu(message):
