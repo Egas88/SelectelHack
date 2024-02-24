@@ -6,6 +6,15 @@ from api import API_REGIONS, API_CITIES
 from bot import bot
 from cities.cities import get_city_id_by_name
 
+o_plus_text = "O(+) \'Первая положительная\'"
+o_minus_text = "O(-) \'Первая отрицательная\'"
+a_plus_text = "A(+) \'Вторая положительная\'"
+a_minus_text = "A(-) \'Вторая отрицательная\'"
+b_plus_text = "B(+) \'Третья положительная\'"
+b_minus_text = "B(-) \'Третья отрицательная\'"
+ab_plus_text = "AB(+) \'Четвертая положительная\'"
+ab_minus_text = "AB(-) \'Четвертая отрицательная\'"
+
 def handle_bs_need(message):
     markup = create_bs_need_regions_markup()
     bot.edit_message_text(text="Выберите регион: ", chat_id=message.chat.id, message_id=message.message_id, reply_markup=markup)
@@ -51,7 +60,7 @@ def select_bs_need_region(call: CallbackQuery):
         bot.edit_message_text(text="Выберите город: ", chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup)
     elif call.data.startswith("blood_station_region_city-"):
         city_id = call.data.split('-')[1]
-        print_blood_stations_needs_cards(call.message.chat.id, get_blood_stations_with_needs_by_city_id(city_id))
+        print_blood_stations_needs_cards(call.message.chat.id, call.message.message_id, get_blood_stations_with_needs_by_city_id(city_id))
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('blood_station_list_region'))
 def select_bs_list_region(call: CallbackQuery):
@@ -70,8 +79,36 @@ def select_bs_list_region(call: CallbackQuery):
         bot.edit_message_text(text="Выберите город: ", chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup)
     elif call.data.startswith("blood_station_list_region_city-"):
         city_id = call.data.split('-')[1]
+
         # print_blood_stations_needs_cards(call.message.chat.id, get_blood_stations_with_needs_by_city_id(city_id))
         # запросить группу КРОВЫ
+
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        o_plus_btn = types.InlineKeyboardButton(o_plus_text, callback_data='change_go_back')
+        o_minus_btn = types.InlineKeyboardButton(o_minus_text, callback_data='change_go_back')
+
+        a_plus_btn = types.InlineKeyboardButton(a_plus_text, callback_data='change_go_back')
+        a_minus_btn = types.InlineKeyboardButton(a_minus_text, callback_data='change_go_back')
+
+        b_plus_btn = types.InlineKeyboardButton(b_plus_text, callback_data='change_go_back')
+        b_minus_btn = types.InlineKeyboardButton(b_minus_text, callback_data='change_go_back')
+
+        ab_plus_btn = types.InlineKeyboardButton(ab_plus_text, callback_data='change_go_back')
+        ab_minus_btn = types.InlineKeyboardButton(ab_minus_text, callback_data='change_go_back')
+
+        markup.add(o_plus_btn)
+        markup.add(o_minus_btn)
+
+        markup.add(a_plus_btn)
+        markup.add(a_minus_btn)
+
+        markup.add(b_plus_btn)
+        markup.add(b_minus_btn)
+
+        markup.add(ab_plus_btn)
+        markup.add(ab_minus_btn)
+
+        bot.edit_message_text(text="Введите вашу группу крови: ", chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup)
 
 
 def create_bs_regions_markup(page=1, per_page=10):
@@ -175,7 +212,7 @@ def get_blood_stations_with_needs_by_city_id(city_id):
             result.append(response)
     return result
 
-def print_blood_stations_needs_cards(user_id, allowed_blood_stations_need):
+def print_blood_stations_needs_cards(user_id, orig_message_id, allowed_blood_stations_need):
     global cur_page_num
     global pages
     global message_id
@@ -205,21 +242,13 @@ def print_blood_stations_needs_cards(user_id, allowed_blood_stations_need):
                 curPageText += title + "\n\n"
 
                 o_plus = allowed_blood_stations_need[page_i + i]["o_plus"]
-                o_plus_text = "O(+) \'Первая положительная\'"
                 o_minus = allowed_blood_stations_need[page_i + i]["o_minus"]
-                o_minus_text = "O(-) \'Первая отрицательная\'"
                 a_plus = allowed_blood_stations_need[page_i + i]["a_plus"]
-                a_plus_text = "A(+) \'Вторая положительная\'"
                 a_minus = allowed_blood_stations_need[page_i + i]["a_minus"]
-                a_minus_text = "A(-) \'Вторая отрицательная\'"
                 b_plus = allowed_blood_stations_need[page_i + i]["b_plus"]
-                b_plus_text = "B(+) \'Третья положительная\'"
                 b_minus = allowed_blood_stations_need[page_i + i]["b_minus"]
-                b_minus_text = "B(-) \'Третья отрицательная\'"
                 ab_plus = allowed_blood_stations_need[page_i + i]["ab_plus"]
-                ab_plus_text = "AB(+) \'Четвертая положительная\'"
                 ab_minus = allowed_blood_stations_need[page_i + i]["ab_minus"]
-                ab_minus_text = "AB(-) \'Четвертая отрицательная\'"
 
                 if o_plus == "need":
                     curPageText += get_need_group_text(o_plus_text)
@@ -283,8 +312,10 @@ def print_blood_stations_needs_cards(user_id, allowed_blood_stations_need):
         markup.add(page_go_left_button, page_go_right_button)
         markup.add(back_button)
 
-        message = bot.send_message(user_id, form_page_text(pages[cur_page_num]), reply_markup=markup, parse_mode="HTML", disable_web_page_preview=True)
-        message_id = message.message_id
+        bot.edit_message_text(chat_id=user_id, message_id=orig_message_id, text=form_page_text(pages[cur_page_num]),
+                              reply_markup=markup, parse_mode="HTML", disable_web_page_preview=True)
+        #bot.edit_message_text(user_id, message_id=orig_message_id, text=form_page_text(pages[cur_page_num]), reply_markup=markup, parse_mode="HTML", disable_web_page_preview=True)
+        message_id = orig_message_id
 
 def form_page_text(page):
     global cur_page_num
