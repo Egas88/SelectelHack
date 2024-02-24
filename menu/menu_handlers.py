@@ -1,7 +1,7 @@
 from telebot import types
 
 from auth_register.change_creds.change_creds import handle_change_creds
-from blood_station.blood_station import handle_blood_stations_need_list, handle_blood_stations_list
+from blood_station.blood_station import handle_blood_stations_need_list, handle_blood_stations_list, handle_test
 from bot import bot
 from donation.donation import handle_donation_adding
 from donation.guide import handle_blood_donation_guide
@@ -83,6 +83,12 @@ def handle_personal_menu(message):
     """
     markup.add(donate_button, change_personal, honorary_donor_button, back_button)
     bot.send_message(message.chat.id, msg_txt, reply_markup=markup, parse_mode="HTML")
+
+
+def handle_articles_menu(message):
+    pass
+
+
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('sub_menu_'))

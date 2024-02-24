@@ -1,7 +1,8 @@
-requests
-telebot
+requests~=2.31.0
+telebot~=0.0.5
 calendar
 dotenv
 datetime
 os
-phonenumbers
+python-dotenv~=1.0.1
+phonenumbers~=8.13.30
