@@ -6,34 +6,126 @@ from api import API_REGIONS, API_CITIES
 from bot import bot
 from cities.cities import get_city_id_by_name
 
+def handle_bs_need(message):
+    markup = create_bs_need_regions_markup()
+    bot.edit_message_text(text="Выберите регион: ", chat_id=message.chat.id, message_id=message.message_id, reply_markup=markup)
+
+# def handle_bs_list(message):
+#     markup = create_bs_regions_markup()
+#     bot.edit_message_text(text="Выберите регион: ", chat_id=message.chat.id, message_id=message.message_id, reply_markup=markup)
+
+def handle_blood_stations_list(message):
+    markup = create_bs_regions_markup()
+    bot.edit_message_text(text="Выберите регион: ", chat_id=message.chat.id, message_id=message.message_id, reply_markup=markup)
+    # blood_group = "o_plus"
+    # city_id = get_city_id_by_name("Санкт-Петербург")
+    # url = 'https://hackaton.donorsearch.org/api/blood_stations/'
+    # params = {'blood_group': 'o_plus', 'city_id': city_id}
+    # response = requests.get(url=url, params=params)
+    #
+    # blood_stations = response.json()["results"]
+    #
+    # allowed_blood_stations = []
+    # for j in range(0, len(blood_stations)):
+    #     if blood_stations[j]["city_id"] is city_id:
+    #         allowed_blood_stations.append(blood_stations[j])
+    #
+    # blood_station_ids = [value["id"] for value in allowed_blood_stations]
+    #
+    # print_blood_stations_cards(message.chat.id, blood_station_ids)
+
 @bot.callback_query_handler(func=lambda call: call.data.startswith('blood_station_region'))
-def select_bs_region(call: CallbackQuery):
+def select_bs_need_region(call: CallbackQuery):
     if call.data.startswith("blood_station_region_page"):
         page = int(call.data.split('-')[1])
-        markup = create_bs_regions_markup(page=page)
+        markup = create_bs_need_regions_markup(page=page)
         bot.edit_message_text(text="Выберите регион: ", chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup)
     elif call.data.startswith("blood_station_region-"):
         region_id = call.data.split('-')[1]
-        markup = create_bs_cities_markup(region_id)
+        markup = create_bs_need_cities_markup(region_id)
         bot.edit_message_text(text="Выберите город: ", chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup)
     elif call.data.startswith("blood_station_region_city_page"):
         region_id = call.data.split('-')[1]
         page = int(call.data.split('-')[2])
-        markup = create_bs_cities_markup(region_id, page=page)
+        markup = create_bs_need_cities_markup(region_id, page=page)
         bot.edit_message_text(text="Выберите город: ", chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup)
     elif call.data.startswith("blood_station_region_city-"):
         city_id = call.data.split('-')[1]
         print_blood_stations_needs_cards(call.message.chat.id, get_blood_stations_with_needs_by_city_id(city_id))
 
+@bot.callback_query_handler(func=lambda call: call.data.startswith('blood_station_list_region'))
+def select_bs_list_region(call: CallbackQuery):
+    if call.data.startswith("blood_station_list_region_page"):
+        page = int(call.data.split('-')[1])
+        markup = create_bs_regions_markup(page=page)
+        bot.edit_message_text(text="Выберите регион: ", chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup)
+    elif call.data.startswith("blood_station_list_region-"):
+        region_id = call.data.split('-')[1]
+        markup = create_bs_cities_markup(region_id)
+        bot.edit_message_text(text="Выберите город: ", chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup)
+    elif call.data.startswith("blood_station_list_region_city_page"):
+        region_id = call.data.split('-')[1]
+        page = int(call.data.split('-')[2])
+        markup = create_bs_cities_markup(region_id, page=page)
+        bot.edit_message_text(text="Выберите город: ", chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup)
+    elif call.data.startswith("blood_station_list_region_city-"):
+        city_id = call.data.split('-')[1]
+        # print_blood_stations_needs_cards(call.message.chat.id, get_blood_stations_with_needs_by_city_id(city_id))
+        # запросить группу КРОВЫ
+
 
 def create_bs_regions_markup(page=1, per_page=10):
-    responce = requests.get(f"{API_REGIONS}", params={"country": "1"}).json()
-    responce = responce["results"]
+    response = requests.get(f"{API_REGIONS}", params={"country": "1"}).json()
+    response = response["results"]
     markup = InlineKeyboardMarkup()
-    total_pages = len(responce) // per_page + (1 if len(responce) % per_page > 0 else 0)
+    total_pages = len(response) // per_page + (1 if len(response) % per_page > 0 else 0)
     start = (page - 1) * per_page
     end = start + per_page
-    for region in responce[start:end]:
+    for region in response[start:end]:
+        markup.add(InlineKeyboardButton(region["title"], callback_data=f"blood_station_list_region-{region['id']}"))
+
+    row = []
+    if page > 1:
+        row.append(InlineKeyboardButton('⬅️', callback_data=f'blood_station_list_region_page-{page - 1}'))
+    if page < total_pages:
+        row.append(InlineKeyboardButton('➡️', callback_data=f'blood_station_list_region_page-{page + 1}'))
+    if row:
+        markup.row(*row)
+
+    markup.row(InlineKeyboardButton('↩️ Назад в меню', callback_data='change_go_back'))
+    return markup
+
+
+def create_bs_cities_markup(region_id, page=1, per_page=10):
+    response = requests.get(f"{API_CITIES}", params={"country": "1", "region": f"{region_id}"}).json()
+    response = response["results"]
+    markup = InlineKeyboardMarkup()
+    total_pages = len(response) // per_page + (1 if len(response) % per_page > 0 else 0)
+    start = (page - 1) * per_page
+    end = start + per_page
+    for city in response[start:end]:
+        markup.add(InlineKeyboardButton(city["title"], callback_data=f"blood_station_list_region_city-{city['id']}"))
+
+    row = []
+    if page > 1:
+        row.append(InlineKeyboardButton('⬅️', callback_data=f'blood_station_list_region_city_page-{region_id}-{page - 1}'))
+    if page < total_pages:
+        row.append(InlineKeyboardButton('➡️', callback_data=f'blood_station_list_region_city_page-{region_id}-{page + 1}'))
+    if row:
+        markup.row(*row)
+
+    markup.add(InlineKeyboardButton("Назад к регионам", callback_data="blood_station_list_region_back_to_regions"))
+    markup.row(InlineKeyboardButton('↩️  Назад в меню ', callback_data='change_go_back'))
+    return markup
+
+def create_bs_need_regions_markup(page=1, per_page=10):
+    response = requests.get(f"{API_REGIONS}", params={"country": "1"}).json()
+    response = response["results"]
+    markup = InlineKeyboardMarkup()
+    total_pages = len(response) // per_page + (1 if len(response) % per_page > 0 else 0)
+    start = (page - 1) * per_page
+    end = start + per_page
+    for region in response[start:end]:
         markup.add(InlineKeyboardButton(region["title"], callback_data=f"blood_station_region-{region['id']}"))
 
     row = []
@@ -48,14 +140,14 @@ def create_bs_regions_markup(page=1, per_page=10):
     return markup
 
 
-def create_bs_cities_markup(region_id, page=1, per_page=10):
-    responce = requests.get(f"{API_CITIES}", params={"country": "1", "region": f"{region_id}"}).json()
-    responce = responce["results"]
+def create_bs_need_cities_markup(region_id, page=1, per_page=10):
+    response = requests.get(f"{API_CITIES}", params={"country": "1", "region": f"{region_id}"}).json()
+    response = response["results"]
     markup = InlineKeyboardMarkup()
-    total_pages = len(responce) // per_page + (1 if len(responce) % per_page > 0 else 0)
+    total_pages = len(response) // per_page + (1 if len(response) % per_page > 0 else 0)
     start = (page - 1) * per_page
     end = start + per_page
-    for city in responce[start:end]:
+    for city in response[start:end]:
         markup.add(InlineKeyboardButton(city["title"], callback_data=f"blood_station_region_city-{city['id']}"))
 
     row = []
@@ -69,34 +161,6 @@ def create_bs_cities_markup(region_id, page=1, per_page=10):
     markup.add(InlineKeyboardButton("Назад к регионам", callback_data="blood_station_region_back_to_regions"))
     markup.row(InlineKeyboardButton('↩️  Назад в меню ', callback_data='change_go_back'))
     return markup
-
-def handle_test(message):
-    markup = create_bs_regions_markup()
-    bot.edit_message_text(text="Выберите регион: ", chat_id=message.chat.id, message_id=message.message_id, reply_markup=markup)
-
-# def create_bs_regions_markup(page=1, per_page=10):
-#     responce = requests.get(f"{API_REGIONS}", params={"country": "1"}).json()
-#     responce = responce["results"]
-#     markup = InlineKeyboardMarkup()
-#     total_pages = len(responce) // per_page + (1 if len(responce) % per_page > 0 else 0)
-#     start = (page - 1) * per_page
-#     end = start + per_page
-#     for region in responce[start:end]:
-#         markup.add(InlineKeyboardButton(region["title"], callback_data=f"blood_station_region-{region['id']}"))
-#
-#     row = []
-#     if page > 1:
-#         row.append(InlineKeyboardButton('⬅️', callback_data=f'blood_station_region_page-{page - 1}'))
-#     if page < total_pages:
-#         row.append(InlineKeyboardButton('➡️', callback_data=f'blood_station_region_page-{page + 1}'))
-#     if row:
-#         markup.row(*row)
-#
-#     markup.row(InlineKeyboardButton('↩️ Назад в меню', callback_data='change_go_back'))
-#     return markup
-
-# def handle_blood_stations_need_list(message, city_id):
-#     # asfd
 
 def get_blood_stations_with_needs_by_city_id(city_id):
     url = 'https://hackaton.donorsearch.org/api/needs'
@@ -277,38 +341,6 @@ def get_need_group_text(group_need):
 
 def get_no_need_group_text(group_no_need):
     return "🔴 " + group_no_need + "\n"
-
-def handle_blood_stations_list(message):
-    blood_group = "o_plus"
-    city_id = get_city_id_by_name("Санкт-Петербург")
-    url = 'https://hackaton.donorsearch.org/api/blood_stations/'
-    params = {'blood_group': 'o_plus', 'city_id': city_id}
-    response = requests.get(url=url, params=params)
-
-    blood_stations = response.json()["results"]
-
-    allowed_blood_stations = []
-    for j in range(0, len(blood_stations)):
-        if blood_stations[j]["city_id"] is city_id:
-            allowed_blood_stations.append(blood_stations[j])
-
-    blood_station_ids = [value["id"] for value in allowed_blood_stations]
-
-    # Check BS needs
-    # for blood_station_id in blood_station_ids:
-    #     x = get_blood_stations_needs_by_id(blood_station_id)
-    # y = get_blood_stations_with_needs_by_city_id(city_id)
-
-    print(blood_station_ids)
-
-    #print_general_info(message.chat.id, city_id, blood_group)
-    print_blood_stations_cards(message.chat.id, blood_station_ids)
-
-def print_general_info(user_id, city_id, blood_group):
-    msgResult = """
-    """
-
-    bot.send_message(user_id, msgResult, parse_mode="HTML")
 
 def print_blood_stations_cards(user_id, blood_station_ids):
     result_messages = []
