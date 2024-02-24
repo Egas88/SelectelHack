@@ -1,154 +1,276 @@
 import requests
 from telebot import types
-from telebot.types import CallbackQuery
+from telebot.types import CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 
+from api import API_REGIONS, API_CITIES
 from bot import bot
 from cities.cities import get_city_id_by_name
 
-# def process_blood_stations_step(message):
-from donation.donation import create_regions_markup, create_cities_markup, choose_blood_station
-from menu.menu import handle_menu
+@bot.callback_query_handler(func=lambda call: call.data.startswith('blood_station_region'))
+def select_bs_region(call: CallbackQuery):
+    if call.data.startswith("blood_station_region_page"):
+        page = int(call.data.split('-')[1])
+        markup = create_bs_regions_markup(page=page)
+        bot.edit_message_text(text="Выберите регион: ", chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup)
+    elif call.data.startswith("blood_station_region-"):
+        region_id = call.data.split('-')[1]
+        markup = create_bs_cities_markup(region_id)
+        bot.edit_message_text(text="Выберите город: ", chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup)
+    elif call.data.startswith("blood_station_region_city_page"):
+        region_id = call.data.split('-')[1]
+        page = int(call.data.split('-')[2])
+        markup = create_bs_cities_markup(region_id, page=page)
+        bot.edit_message_text(text="Выберите город: ", chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup)
+    elif call.data.startswith("blood_station_region_city-"):
+        city_id = call.data.split('-')[1]
+        print_blood_stations_needs_cards(call.message.chat.id, get_blood_stations_with_needs_by_city_id(city_id))
 
 
-# @bot.callback_query_handler(func=lambda call: call.data.startswith('donation_region'))
-# def select_region(call: CallbackQuery):
-#     if call.data.startswith("donation_region_page"):
-#         page = int(call.data.split('-')[1])
-#         markup = create_regions_markup(page=page)
-#         bot.edit_message_text(text="Выберите регион: ", chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup)
-#     elif call.data.startswith("donation_region-"):
-#         region_id = call.data.split('-')[1]
-#         markup = create_cities_markup(region_id)
-#         bot.edit_message_text(text="Выберите город: ", chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup)
-#     elif call.data.startswith("donation_region_city_page"):
-#         region_id = call.data.split('-')[1]
-#         page = int(call.data.split('-')[2])
-#         markup = create_cities_markup(region_id, page=page)
-#         bot.edit_message_text(text="Выберите город: ", chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup)
-#     elif call.data.startswith("donation_region_city-"):
-#         city_id = call.data.split('-')[1]
-#         #request_data["city_id"] = city_id
-#         #displayed_data["city"] = requests.get(f"https://hackaton.donorsearch.org{API_CITIES_ID.format(id=city_id)}").json()["results"]["title"]
-#         #print(displayed_data["city"])
-#         message = call.message
-#         choose_blood_station(message)
-#     elif call.data.startswith("donation_region_back_to_regions"):
-#         markup = create_regions_markup()
-#         bot.edit_message_text(text="Выберите регион: ", chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup)
+def create_bs_regions_markup(page=1, per_page=10):
+    responce = requests.get(f"{API_REGIONS}", params={"country": "1"}).json()
+    responce = responce["results"]
+    markup = InlineKeyboardMarkup()
+    total_pages = len(responce) // per_page + (1 if len(responce) % per_page > 0 else 0)
+    start = (page - 1) * per_page
+    end = start + per_page
+    for region in responce[start:end]:
+        markup.add(InlineKeyboardButton(region["title"], callback_data=f"blood_station_region-{region['id']}"))
 
-def handle_test(callback):
-    page = int(callback.data.split('-')[1])
-    markup = create_regions_markup(page=page)
-    bot.edit_message_text(text="Выберите регион: ", chat_id=callback.message.chat.id, message_id=callback.message.message_id, reply_markup=markup)
+    row = []
+    if page > 1:
+        row.append(InlineKeyboardButton('⬅️', callback_data=f'blood_station_region_page-{page - 1}'))
+    if page < total_pages:
+        row.append(InlineKeyboardButton('➡️', callback_data=f'blood_station_region_page-{page + 1}'))
+    if row:
+        markup.row(*row)
 
-def handle_blood_stations_need_list(message):
-    city_id = get_city_id_by_name("Москва")
-    blood_stations_need = get_blood_stations_with_needs_by_city_id(city_id)["results"]
+    markup.row(InlineKeyboardButton('↩️ Назад в меню', callback_data='change_go_back'))
+    return markup
 
-    allowed_blood_stations_need = []
-    for i in range(0, len(blood_stations_need)):
-        current_city_id = int(blood_stations_need[i]["city_id"])
-        if current_city_id is city_id:
-            allowed_blood_stations_need.append(blood_stations_need[i])
-    print_blood_stations_needs_cards(message.chat.id, allowed_blood_stations_need)
+
+def create_bs_cities_markup(region_id, page=1, per_page=10):
+    responce = requests.get(f"{API_CITIES}", params={"country": "1", "region": f"{region_id}"}).json()
+    responce = responce["results"]
+    markup = InlineKeyboardMarkup()
+    total_pages = len(responce) // per_page + (1 if len(responce) % per_page > 0 else 0)
+    start = (page - 1) * per_page
+    end = start + per_page
+    for city in responce[start:end]:
+        markup.add(InlineKeyboardButton(city["title"], callback_data=f"blood_station_region_city-{city['id']}"))
+
+    row = []
+    if page > 1:
+        row.append(InlineKeyboardButton('⬅️', callback_data=f'blood_station_region_city_page-{region_id}-{page - 1}'))
+    if page < total_pages:
+        row.append(InlineKeyboardButton('➡️', callback_data=f'blood_station_region_city_page-{region_id}-{page + 1}'))
+    if row:
+        markup.row(*row)
+
+    markup.add(InlineKeyboardButton("Назад к регионам", callback_data="blood_station_region_back_to_regions"))
+    markup.row(InlineKeyboardButton('↩️  Назад в меню ', callback_data='change_go_back'))
+    return markup
+
+def handle_test(message):
+    markup = create_bs_regions_markup()
+    bot.edit_message_text(text="Выберите регион: ", chat_id=message.chat.id, message_id=message.message_id, reply_markup=markup)
+
+# def create_bs_regions_markup(page=1, per_page=10):
+#     responce = requests.get(f"{API_REGIONS}", params={"country": "1"}).json()
+#     responce = responce["results"]
+#     markup = InlineKeyboardMarkup()
+#     total_pages = len(responce) // per_page + (1 if len(responce) % per_page > 0 else 0)
+#     start = (page - 1) * per_page
+#     end = start + per_page
+#     for region in responce[start:end]:
+#         markup.add(InlineKeyboardButton(region["title"], callback_data=f"blood_station_region-{region['id']}"))
+#
+#     row = []
+#     if page > 1:
+#         row.append(InlineKeyboardButton('⬅️', callback_data=f'blood_station_region_page-{page - 1}'))
+#     if page < total_pages:
+#         row.append(InlineKeyboardButton('➡️', callback_data=f'blood_station_region_page-{page + 1}'))
+#     if row:
+#         markup.row(*row)
+#
+#     markup.row(InlineKeyboardButton('↩️ Назад в меню', callback_data='change_go_back'))
+#     return markup
+
+# def handle_blood_stations_need_list(message, city_id):
+#     # asfd
 
 def get_blood_stations_with_needs_by_city_id(city_id):
     url = 'https://hackaton.donorsearch.org/api/needs'
     params = {"city_id": city_id}
     response = requests.get(url, params=params)
 
-    response_json = response.json()
-    print()
-    return response_json
+    response_json_result = response.json()["results"]
+    result = []
+    for response in response_json_result:
+        cur_city_id = response["city_id"]
+        if int(cur_city_id) == int(city_id):
+            result.append(response)
+    return result
 
 def print_blood_stations_needs_cards(user_id, allowed_blood_stations_need):
+    global cur_page_num
+    global pages
+    global message_id
+    global pages_amount
+
+    pages = []
+    message_id = ''
+    cur_page_num = 0
+    pages_amount = 0
+
     if len(allowed_blood_stations_need) == 0:
         print("SAFASF")
     else:
-        main_title = """🩸 Нуждающиеся пункты сбора крови"""
-        bot.send_message(user_id, main_title, parse_mode="HTML", disable_web_page_preview=True)
-        for i, allowed in enumerate(allowed_blood_stations_need):
-            curText = ""
-            title = "\n" + "🏥 " + "<u>" + allowed["title"] + "</u>"
-            curText += title + "\n\n"
+        elements_in_page = 1
 
-            o_plus = allowed["o_plus"]
-            o_plus_text = "O(+) \'Первая положительная\'"
-            o_minus = allowed["o_minus"]
-            o_minus_text = "O(-) \'Первая отрицательная\'"
-            a_plus = allowed["a_plus"]
-            a_plus_text = "A(+) \'Вторая положительная\'"
-            a_minus = allowed["a_minus"]
-            a_minus_text = "A(-) \'Вторая отрицательная\'"
-            b_plus = allowed["b_plus"]
-            b_plus_text = "B(+) \'Третья положительная\'"
-            b_minus = allowed["b_minus"]
-            b_minus_text = "B(-) \'Третья отрицательная\'"
-            ab_plus = allowed["ab_plus"]
-            ab_plus_text = "AB(+) \'Четвертая положительная\'"
-            ab_minus = allowed["ab_minus"]
-            ab_minus_text = "AB(-) \'Четвертая отрицательная\'"
+        allowed_bs_len = len(allowed_blood_stations_need)
+        pages_amount = (allowed_bs_len // elements_in_page)
+        if allowed_bs_len % 2 != 0 and allowed_bs_len != 1:
+            pages_amount += 1
 
-            if o_plus == "need":
-                curText += get_need_group_text(o_plus_text)
-            else:
-                curText += get_no_need_group_text(o_plus_text)
-            if o_minus == "need":
-                curText += get_need_group_text(o_minus_text)
-            else:
-                curText += get_no_need_group_text(o_minus_text)
-            curText += "\n"
-            if a_plus == "need":
-                curText += get_need_group_text(a_plus_text)
-            else:
-                curText += get_no_need_group_text(a_plus_text)
-            if a_minus == "need":
-                curText += get_need_group_text(a_minus_text)
-            else:
-                curText += get_no_need_group_text(a_minus_text)
-            curText += "\n"
-            if b_plus == "need":
-                curText += get_need_group_text(b_plus_text)
-            else:
-                curText += get_no_need_group_text(b_plus_text)
-            if b_minus == "need":
-                curText += get_need_group_text(b_minus_text)
-            else:
-                curText += get_no_need_group_text(b_minus_text)
-            curText += "\n"
-            if ab_plus == "need":
-                curText += get_need_group_text(ab_plus_text)
-            else:
-                curText += get_no_need_group_text(ab_plus_text)
-            if ab_minus == "need":
-                curText += get_need_group_text(ab_minus_text)
-            else:
-                curText += get_no_need_group_text(ab_minus_text)
-            curText += "\n"
+        for page_i in range(0, pages_amount):
+            curPageText = ""
+            newPage = []
+            curPageText += """🩸 <b>Нуждающиеся пункты сбора крови</b>\n"""
+            for i in range(0, elements_in_page):
+                title = "\n" + "🏥 " + "<u>" + allowed_blood_stations_need[page_i + i]["title"] + "</u>"
+                curPageText += title + "\n\n"
 
-            address = allowed["address"]
-            curText += "📍 Адрес учреждения:\n<code>{}</code>".format(address)
-            site = allowed["site"]
-            curText += "\n💻 Сайт:\n{}".format(site)
-            phones = [value["phone"] for value in allowed["phone_numbers"]]
-            curText += "\n📞 Телефоны:"
-            for phone in phones:
-                curText += "\n<code>{}</code>".format(phone)
-            worktime = allowed["worktime"]
-            curText += "\n⌚ Время работы:\n"
-            if len(worktime) > 0:
-                curText += "<i>{}</i>".format(worktime)
-            else:
-                curText += "не определено 😢"
+                o_plus = allowed_blood_stations_need[page_i + i]["o_plus"]
+                o_plus_text = "O(+) \'Первая положительная\'"
+                o_minus = allowed_blood_stations_need[page_i + i]["o_minus"]
+                o_minus_text = "O(-) \'Первая отрицательная\'"
+                a_plus = allowed_blood_stations_need[page_i + i]["a_plus"]
+                a_plus_text = "A(+) \'Вторая положительная\'"
+                a_minus = allowed_blood_stations_need[page_i + i]["a_minus"]
+                a_minus_text = "A(-) \'Вторая отрицательная\'"
+                b_plus = allowed_blood_stations_need[page_i + i]["b_plus"]
+                b_plus_text = "B(+) \'Третья положительная\'"
+                b_minus = allowed_blood_stations_need[page_i + i]["b_minus"]
+                b_minus_text = "B(-) \'Третья отрицательная\'"
+                ab_plus = allowed_blood_stations_need[page_i + i]["ab_plus"]
+                ab_plus_text = "AB(+) \'Четвертая положительная\'"
+                ab_minus = allowed_blood_stations_need[page_i + i]["ab_minus"]
+                ab_minus_text = "AB(-) \'Четвертая отрицательная\'"
 
-            if i == len(allowed_blood_stations_need) - 1:
-                markup = types.InlineKeyboardMarkup(row_width=1)
-                back_button = types.InlineKeyboardButton('↩️ Назад ', callback_data='change_go_back')
-                markup.add(back_button)
+                if o_plus == "need":
+                    curPageText += get_need_group_text(o_plus_text)
+                else:
+                    curPageText += get_no_need_group_text(o_plus_text)
+                if o_minus == "need":
+                    curPageText += get_need_group_text(o_minus_text)
+                else:
+                    curPageText += get_no_need_group_text(o_minus_text)
+                curPageText += "\n"
+                if a_plus == "need":
+                    curPageText += get_need_group_text(a_plus_text)
+                else:
+                    curPageText += get_no_need_group_text(a_plus_text)
+                if a_minus == "need":
+                    curPageText += get_need_group_text(a_minus_text)
+                else:
+                    curPageText += get_no_need_group_text(a_minus_text)
+                curPageText += "\n"
+                if b_plus == "need":
+                    curPageText += get_need_group_text(b_plus_text)
+                else:
+                    curPageText += get_no_need_group_text(b_plus_text)
+                if b_minus == "need":
+                    curPageText += get_need_group_text(b_minus_text)
+                else:
+                    curPageText += get_no_need_group_text(b_minus_text)
+                curPageText += "\n"
+                if ab_plus == "need":
+                    curPageText += get_need_group_text(ab_plus_text)
+                else:
+                    curPageText += get_no_need_group_text(ab_plus_text)
+                if ab_minus == "need":
+                    curPageText += get_need_group_text(ab_minus_text)
+                else:
+                    curPageText += get_no_need_group_text(ab_minus_text)
+                curPageText += "\n"
 
-                bot.send_message(user_id, curText, reply_markup=markup, parse_mode="HTML", disable_web_page_preview=True)
-            else:
-                bot.send_message(user_id, curText, parse_mode="HTML", disable_web_page_preview=True)
+                address = allowed_blood_stations_need[page_i + i]["address"]
+                curPageText += "📍 Адрес учреждения:\n<code>{}</code>".format(address)
+                site = allowed_blood_stations_need[page_i + i]["site"]
+                curPageText += "\n💻 Сайт:\n{}".format(site)
+                phones = [value["phone"] for value in allowed_blood_stations_need[page_i + i]["phone_numbers"]]
+                curPageText += "\n📞 Телефоны:"
+                for phone in phones:
+                    curPageText += "\n<code>{}</code>".format(phone)
+                worktime = allowed_blood_stations_need[page_i + i]["worktime"]
+                curPageText += "\n⌚ Время работы:\n"
+                if len(worktime) > 0:
+                    curPageText += "<i>{}</i>\n".format(worktime)
+                else:
+                    curPageText += "не определено 😢\n"
+
+            newPage.append(curPageText)
+            pages.append(newPage)
+
+        markup = types.InlineKeyboardMarkup(row_width=2)
+        back_button = types.InlineKeyboardButton('↩️ Назад ', callback_data='change_go_back')
+        page_go_right_button = types.InlineKeyboardButton('➡️', callback_data='page_go_right')
+        page_go_left_button = types.InlineKeyboardButton('⬅️', callback_data='page_go_left')
+        markup.add(page_go_left_button, page_go_right_button)
+        markup.add(back_button)
+
+        message = bot.send_message(user_id, form_page_text(pages[cur_page_num]), reply_markup=markup, parse_mode="HTML", disable_web_page_preview=True)
+        message_id = message.message_id
+
+def form_page_text(page):
+    global cur_page_num
+    global pages_amount
+
+    dop = f"\n\n<i>Страница {cur_page_num + 1} из {pages_amount}</i>"
+    result = ""
+    for el in page:
+        result += el
+    result += dop
+    return result
+
+pages = []
+message_id = ''
+cur_page_num = 0
+pages_amount = 0
+@bot.callback_query_handler(func=lambda call: call.data.startswith('page_go_'))
+def page_go_left_right_button_callback(callback):
+    global cur_page_num
+    global pages
+    global message_id
+    global pages_amount
+
+    chat_id = callback.message.chat.id
+    if callback.data == "page_go_right":
+        if (cur_page_num + 1) < pages_amount:
+            cur_page_num += 1
+
+            markup = types.InlineKeyboardMarkup(row_width=2)
+            back_button = types.InlineKeyboardButton('↩️ Назад ', callback_data='change_go_back')
+            page_go_right_button = types.InlineKeyboardButton('➡️', callback_data='page_go_right')
+            page_go_left_button = types.InlineKeyboardButton('⬅️', callback_data='page_go_left')
+            markup.add(page_go_left_button, page_go_right_button)
+            markup.add(back_button)
+
+            bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=form_page_text(pages[cur_page_num]), reply_markup=markup, parse_mode="HTML", disable_web_page_preview=True)
+    elif callback.data == "page_go_left":
+        if cur_page_num > 0:
+            cur_page_num -= 1
+
+            markup = types.InlineKeyboardMarkup(row_width=2)
+            back_button = types.InlineKeyboardButton('↩️ Назад ', callback_data='change_go_back')
+            page_go_right_button = types.InlineKeyboardButton('➡️', callback_data='page_go_right')
+            page_go_left_button = types.InlineKeyboardButton('⬅️', callback_data='page_go_left')
+            markup.add(page_go_left_button, page_go_right_button)
+            markup.add(back_button)
+
+            bot.edit_message_text(chat_id=chat_id, message_id=message_id, text=form_page_text(pages[cur_page_num]), reply_markup=markup, parse_mode="HTML", disable_web_page_preview=True)
+    else:
+        return
 
 def get_need_group_text(group_need):
     return "🟢 " + group_need + "\n"
@@ -228,7 +350,3 @@ def get_blood_stations_needs_by_id(blood_station_id):
     response_json = response.json()
     print()
     return response_json
-
-# def get_bold_text(text):
-#     bold = "<b>{}</b>"
-#     return bold.format(text)
