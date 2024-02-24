@@ -88,9 +88,6 @@ def handle_personal_menu(message):
 def handle_articles_menu(message):
     pass
 
-
-
-
 @bot.callback_query_handler(func=lambda call: call.data.startswith('sub_menu_'))
 def process_register_step(callback):
     if callback.data == "sub_menu_add_donation":

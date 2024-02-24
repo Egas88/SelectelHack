@@ -1,8 +1,12 @@
 import requests
 import re
+
+from telebot import types
+
 from bot import bot
 from api import *
 from auth_register.users import users_dict
+from menu.menu import handle_menu
 
 bonus_ids = []
 
@@ -21,12 +25,17 @@ def handle_view_bonuses_list(message):
         details_json = get_info_by_bonus_id(bonus_id)
 
         #Test getting feedback
-        bonus_feedback_details = leave_feedback_by_bonus_id(message.from_user.id, bonus_id, "Comment", 5)
+        #bonus_feedback_details = leave_feedback_by_bonus_id(message.chat.id, bonus_id, "Comment", 5)
 
         result += form_html_message_by_bonus(details_json)
 
-    user_id = message.from_user.id
-    bot.send_message(user_id, result, parse_mode="HTML", disable_web_page_preview=True)
+    user_id = message.chat.id
+
+    markup = types.InlineKeyboardMarkup(row_width=1)
+    back_button = types.InlineKeyboardButton('↩️ Назад ', callback_data='change_go_back')
+    markup.add(back_button)
+
+    bot.send_message(user_id, result, reply_markup=markup, parse_mode="HTML", disable_web_page_preview=True)
 
 def form_html_message_by_bonus(bonus_details_json):
     bonus_name = bonus_details_json["bonus_name"]

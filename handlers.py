@@ -56,7 +56,7 @@ def message_reply(callback):
     elif callback.data == "menu_articles":
         handle_articles_menu(callback.message)
     elif callback.data == "menu_bonuses":
-        pass
+        handle_view_bonuses_list(callback.message)
     else:
         return
 
