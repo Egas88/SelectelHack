@@ -86,7 +86,21 @@ def handle_personal_menu(message):
 
 
 def handle_articles_menu(message):
-    pass
+    markup = types.InlineKeyboardMarkup(row_width=1)
+    guide_link = types.InlineKeyboardButton('📜 Все последние новости ',
+                                            url="https://journal.donorsearch.org/")
+    back_button = types.InlineKeyboardButton('↩️ Назад ', callback_data='change_go_back')
+    msg_txt = """
+        <b> 📜 Последние новости из нашего журнала  </b>
+
+💉 Для получения самой свежей информации о донорстве и новейших откртиях в мире медицины и гематологии перейдите на наш ресурс! 
+
+Больше новостей Вы можете получить нажав по кнопке ниже
+
+        """
+    markup.add(guide_link, back_button)
+    bot.send_message(message.chat.id, msg_txt, reply_markup=markup, parse_mode="HTML")
+
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('sub_menu_'))
 def process_register_step(callback):

@@ -3,7 +3,7 @@ from bot import bot
 
 
 def handle_blood_donation_guide(message):
-    markup = types.InlineKeyboardMarkup(row_width=2)
+    markup = types.InlineKeyboardMarkup(row_width=1)
     guide_link = types.InlineKeyboardButton('📕 Полный справочник ',
                                             url="https://journal.donorsearch.org/category/directory/")
     back_button = types.InlineKeyboardButton('↩️ Назад ', callback_data='change_go_back')
