@@ -13,11 +13,18 @@ cur_user_data = {}
 
 def handle_register(message):
     chat_id = message.chat.id
-    bot.send_message(chat_id, """
-    
-    <b> Введите Ваше имя </b>
-    
-    """, parse_mode="HTML")
+    markup = types.InlineKeyboardMarkup(row_width=1)
+    back_button = types.InlineKeyboardButton('↩️ В начало ', callback_data='back_start')
+    markup.add(back_button)
+
+    msg_txt = """
+
+    ✏️  Введите Ваше имя!
+
+    """
+
+    bot.send_message(chat_id, msg_txt, reply_markup=markup, parse_mode="HTML")
+
     bot.register_next_step_handler(message, process_name_step)
 
 
@@ -27,26 +34,28 @@ def process_name_step(message):
     email_btn = types.InlineKeyboardButton('📧 По Email', callback_data="register_email")
     phone_btn = types.InlineKeyboardButton('☎️ По номеру телефона', callback_data="register_phone")
     markup.add(email_btn, phone_btn)
-    users.is_possible_input = True
-    bot.send_message(message.chat.id, """<b> Пожалуйста, выберите тип регистрации </b> """, reply_markup=markup, parse_mode="HTML")
-    # bot.register_next_step_handler(message, process_register_step)
 
+    if users.additional_input:
+        users.additional_input = False
+        bot.send_message(message.chat.id, """<b> Пожалуйста, выберите тип регистрации </b> """, reply_markup=markup, parse_mode="HTML")
+    else:
+        return
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('register_'))
 def process_register_step(callback):
     chat_id = callback.message.chat.id
     if callback.data == "register_email":
-        if not users.is_possible_input:
+        if not users.additional_input:
             return
         else:
-            users.is_possible_input = False
+            users.additional_input = False
         bot.send_message(chat_id, "Введите ваш email")
         bot.register_next_step_handler(callback.message, process_email_step)
     elif callback.data == "register_phone":
-        if not users.is_possible_input:
+        if not users.additional_input:
             return
         else:
-            users.is_possible_input = False
+            users.additional_input = False
         bot.send_message(chat_id, "Введите ваш номер телефона")
         bot.register_next_step_handler(callback.message, process_phone_step)
     else:
@@ -55,27 +64,41 @@ def process_register_step(callback):
 
 def process_email_step(message):
     chat_id = message.chat.id
+    users.additional_input = True
+
     email = message.text
     if not email_validator(email):
-        bot.send_message(chat_id, "Извините, ваш Email некорректен. Введите верный Email")
+        bot.send_message(chat_id, "❗ Извините, ваш Email некорректен. Введите верный Email")
         bot.register_next_step_handler(message, process_email_step)
         return
     cur_user_data["email"] = message.text
-    bot.send_message(chat_id, "Введите пароль для Вашей учетной записи", disable_web_page_preview=True)
+
+    if users.additional_input:
+        users.additional_input = False
+        bot.send_message(chat_id, "✏️ Введите пароль для Вашей учетной записи", disable_web_page_preview=True)
+    else:
+        return
+
     bot.register_next_step_handler(message, process_password_step, "email")
 
 
 def process_phone_step(message):
     chat_id = message.chat.id
+    users.additional_input = True
+
     phone = message.text
     is_valid, formatted_phone = phone_validator(phone)
     if not is_valid:
-        bot.send_message(chat_id, "Извините, ваш телефон некорректен. Введите верный мобильный номер")
+        bot.send_message(chat_id, "❗ Извините, ваш телефон некорректен. Введите верный мобильный номер")
         bot.register_next_step_handler(message, process_phone_step)
         return
 
     cur_user_data["phone"] = formatted_phone
-    bot.send_message(chat_id, "Введите пароль для Вашей учетной записи", disable_web_page_preview=True)
+    if users.additional_input:
+        users.additional_input = False
+        bot.send_message(chat_id, "✏️ Введите пароль для Вашей учетной записи", disable_web_page_preview=True)
+    else:
+        return
     bot.register_next_step_handler(message, process_password_step, "phone")
 
 
@@ -86,9 +109,9 @@ def process_password_step(message, reg_type):
         msg_txt = """
                 <b> ❗ Пароль не соответствует требованиям </b>
                 
-Длина пароля должна быть больше 8 символов
+📏 Длина пароля должна быть больше 8 символов
 
-Также не забывайте использовать цифры, строчные и заглавные буквы, а также спецсимволы
+🔤 Также не забывайте использовать цифры, строчные и заглавные буквы, а также спецсимволы
 
                 """
         bot.send_message(message.chat.id, msg_txt, parse_mode="HTML")
@@ -99,7 +122,7 @@ def process_password_step(message, reg_type):
     cur_user_data["password"] = message.text
 
     if reg_type == "phone":
-        bot.send_message(chat_id, "На указанный номер было выслато сообщение с СМС кодом. Введите его ниже для "
+        bot.send_message(chat_id, "✔️ На указанный номер было выслато сообщение с СМС кодом. Введите его ниже для "
                                   "подтверждения")
         body = {
             "phone": cur_user_data["phone"],
@@ -109,7 +132,7 @@ def process_password_step(message, reg_type):
         }
 
     elif reg_type == "email":
-        bot.send_message(chat_id, "На указанный Email было выслато сообщение с кодом. Введите его ниже для "
+        bot.send_message(chat_id, "✔️ На указанный Email было выслато сообщение с кодом. Введите его ниже для "
                                   "подтверждения")
         body = {
             "email": cur_user_data["email"],
@@ -148,11 +171,12 @@ def process_confirm_reg(message, reg_type):
 
     if resp.status_code == 200:
         cur_user_data["username"] = cur_user_data["email"] if "email" in cur_user_data else cur_user_data["phone"]
-        bot.send_message(chat_id, "Вы были успешно зарегистрированы!")
+        bot.send_message(chat_id, "✔️ Вы были успешно зарегистрированы!")
         users_dict[message.chat.id] = cur_user_data
+        users.additional_input = True
         users.is_possible_input = True
         handle_menu(message)
 
     else:
-        bot.send_message(chat_id, "Введённый Вами код неверен, повторите ввод ещё раз!")
+        bot.send_message(chat_id, "❌ Введённый Вами код неверен, повторите ввод ещё раз!")
         bot.register_next_step_handler(message, process_confirm_reg, reg_type)

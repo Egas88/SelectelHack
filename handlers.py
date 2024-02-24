@@ -29,6 +29,13 @@ def view(message):
     handle_blood_stations_list(message)
 
 
+@bot.callback_query_handler(func=lambda call: call.data.startswith('back_'))
+def back_button(callback):
+    if callback.data == "back_start":
+        users.is_possible_input = True
+        handle_start(callback.message)
+
+
 @bot.callback_query_handler(func=lambda call: call.data.startswith('start_'))
 def message_reply(callback):
     if callback.data == "start_register":

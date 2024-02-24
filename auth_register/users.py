@@ -1,5 +1,6 @@
 users_dict = {}
 is_possible_input = True
+additional_input = True
 
 
 def get_username(chat_id):

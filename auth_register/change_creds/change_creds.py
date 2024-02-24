@@ -10,7 +10,7 @@ from menu.menu import handle_menu
 
 
 def handle_change_creds(message):
-    markup = types.InlineKeyboardMarkup(row_width=2)
+    markup = types.InlineKeyboardMarkup(row_width=1)
     change_email_button = types.InlineKeyboardButton('📧 Сменить Email', callback_data='change_email')
     change_phone_button = types.InlineKeyboardButton('☎️ Сменить Телефон', callback_data='change_phone')
     change_password_button = types.InlineKeyboardButton('🔑 Сменить пароль', callback_data='change_password')
