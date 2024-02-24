@@ -5,6 +5,7 @@ import calendar
 import datetime
 from bot import bot
 from api import API_REGIONS, API_CITIES, API_BLOOD_STATIONS
+from menu.menu import handle_menu
 
 
 blood_types = {"blood": "Цельная кровь", "plasma": "Плазма", "platelets": "Тромбоциты", "erythrocytes": "Эритроциты", "leukocytes": "Гранулоциты"}
@@ -17,14 +18,21 @@ def handle_donation_adding(message):
     markup.row(InlineKeyboardButton("Цельная кровь", callback_data="donation_blood_type-blood"), InlineKeyboardButton("Плазма", callback_data="donation_blood_type-plasma"))
     markup.row(InlineKeyboardButton("Тромбоциты", callback_data="donation_blood_type-platelets"), InlineKeyboardButton("Эритроциты", callback_data="donation_blood_type-erythrocytes"))
     markup.row(InlineKeyboardButton("Гранулоциты", callback_data="donation_blood_type-leukocytes"))
-    bot.send_message(message.chat.id, "Выберите тип крови:", reply_markup=markup)
+    markup.row(InlineKeyboardButton('↩️ Назад в меню ', callback_data='change_go_back'))
+    bot.edit_message_text(
+        chat_id=message.chat.id,
+        message_id=message.message_id,
+        text="Выберите тип крови:", 
+        reply_markup=markup
+    )
 
 
 def choose_payment_type(message):
     markup = types.InlineKeyboardMarkup(row_width=2)
     free = types.InlineKeyboardButton("Безвозмездно", callback_data="donation_payment_type-free")
     payed = types.InlineKeyboardButton("Платно", callback_data="donation_payment_type-payed")
-    markup.add(free, payed)
+    back_button = types.InlineKeyboardButton('↩️ Назад в меню ', callback_data='change_go_back')
+    markup.add(free, payed, back_button)
     bot.edit_message_text(
         chat_id=message.chat.id, 
         message_id=message.message_id, 
@@ -48,7 +56,8 @@ def choose_is_out(message):
     markup = types.InlineKeyboardMarkup(row_width=2)
     false = types.InlineKeyboardButton("Стационарный пункт", callback_data="donation_is_out-false")
     true = types.InlineKeyboardButton("Выездная акция", callback_data="donation_is_out-true")
-    markup.add(false, true)
+    back_button = types.InlineKeyboardButton('↩️ Назад в меню ', callback_data='change_go_back')
+    markup.add(false, true, back_button)
     bot.edit_message_text(
         chat_id=message.chat.id, 
         message_id=message.message_id, 
@@ -84,6 +93,8 @@ def create_regions_markup(page = 1, per_page = 10):
         row.append(InlineKeyboardButton('➡️', callback_data=f'donation_region_page-{page+1}'))
     if row:
         markup.row(*row)
+
+    markup.row(InlineKeyboardButton('↩️ Назад в меню', callback_data='change_go_back'))
     return markup
 
 
@@ -106,6 +117,7 @@ def create_cities_markup(region_id, page = 1, per_page = 10):
         markup.row(*row)
     
     markup.add(InlineKeyboardButton("Назад к регионам", callback_data="donation_region_back_to_regions"))
+    markup.row(InlineKeyboardButton('↩️  Назад в меню ', callback_data='change_go_back'))
     return markup
 
 
@@ -137,6 +149,8 @@ def create_blood_stations_markup(page = 1, per_page = 10):
     if row:
         markup.row(*row)
     
+    markup.row(InlineKeyboardButton('↩️  Назад в меню ', callback_data='change_go_back'))
+
     return markup
 
 
@@ -147,6 +161,40 @@ def choose_blood_station(message):
         message_id=message.message_id,
         text="Выберите центр крови: ",
         reply_markup=markup
+    )
+
+
+def choose_is_need(message):
+    markup = types.InlineKeyboardMarkup()
+    send = types.InlineKeyboardButton("Отправить", callback_data="donation_send-true")
+    change = types.InlineKeyboardButton("Изменить данные", callback_data="donation_send-false")
+    back_button = types.InlineKeyboardButton('↩️ Назад в меню ', callback_data='change_go_back')
+    markup.add(send, change, back_button)
+    bot.edit_message_text(
+        chat_id=message.chat.id,
+        message_id=message.message_id,
+        text=f"""
+Вы выбрали следующие параметры:
+
+<b>Тип крови</b>
+{displayed_data["blood_type"]}
+
+<b>Дата</b>
+{displayed_data["plan_date"]}
+
+<b>Тип донации</b>
+{displayed_data["payment_type"]}
+
+<b>Место сдачи</b>
+{displayed_data["is_out"]}
+
+<b>Город</b>
+{displayed_data["city"]}
+
+<b>Центр крови</b>
+{displayed_data["blood_station"]}
+        """,
+        reply_markup=markup,
     )
 
 
@@ -189,7 +237,7 @@ def create_calendar(year, month):
             else:
                 row.append(InlineKeyboardButton(str(day), callback_data=f"donation_data-{year}-{str(month).zfill(2)}-{str(day).zfill(2)}-{str(day).zfill(2)}.{str(month).zfill(2)}.{year}"))
         markup.row(*row)
-    
+    markup.row(InlineKeyboardButton('↩️  Назад в меню ', callback_data='change_go_back'))
     return markup
 
 
@@ -208,6 +256,7 @@ def create_month_year_selection(year, month):
         month_row.append(month_button)
         if i % 3 == 0:
             markup.row(*month_row)
+
     return markup
 
 
@@ -235,7 +284,6 @@ def select_blood_type(call: CallbackQuery):
         blood_type = call.data.split('-')[1]
         request_data["blood_type"] = blood_type
         displayed_data["blood_type"] = blood_types[blood_type]
-        print(displayed_data["blood_type"])
         message = call.message
         get_calendar(message)
 
@@ -280,7 +328,6 @@ def select_payment_type(call: CallbackQuery):
         displayed_data["payment_type"] = "Безвозмездно"
     elif payment_type == "paid":
         displayed_data["payment_type"] = "Платно"
-    print(displayed_data["payment_type"])
     message = call.message
     choose_is_out(message)
 
@@ -293,7 +340,6 @@ def select_is_out(call: CallbackQuery):
         displayed_data["is_out"] = "Выездная акция"
     elif is_out == "false":
         displayed_data["is_out"] = "Стационарный пункт"
-    print(displayed_data["is_out"])
     message = call.message
     choose_region(message)
 
@@ -316,8 +362,7 @@ def select_region(call: CallbackQuery):
     elif call.data.startswith("donation_region_city-"):
         city_id = call.data.split('-')[1]
         request_data["city_id"] = city_id
-        #displayed_data["city"] = requests.get(f"{API_CITIES}/{city_id}").json()["results"]["title"]
-        #print(displayed_data["city"])
+        displayed_data["city"] = requests.get(f"{API_CITIES}{city_id}/").json()["title"]
         message = call.message
         choose_blood_station(message)
     elif call.data.startswith("donation_region_back_to_regions"):
@@ -334,10 +379,21 @@ def select_blood_station(call: CallbackQuery):
     elif call.data.startswith("donation_blood_station-"):
         blood_station_id = call.data.split('-')[1]
         request_data["blood_station_id"] = blood_station_id
-        #displayed_data["blood_station"] = call.data.split('-')[2]
-        #print(request_data["blood_station_id"])
-        #print(displayed_data["blood_station"])
-        #TODO: написать реквест на создание записи
-        #TODO: написать смену данных записи
-        # message = call.message
-        # choose_is_doc_upload(message)
+        displayed_data["blood_station"] = requests.get(f"{API_BLOOD_STATIONS}{blood_station_id}/").json()["title"]
+        message = call.message
+        choose_is_need(message)
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('donation_send'))
+def select_send_or_change(call: CallbackQuery):
+    is_send = call.data.split('-')[1]
+    if is_send == "true":
+        #TODO: Написать запрос
+        bot.edit_message_text(
+            chat_id=call.message.chat.id,
+            message_id=call.message.message_id,
+            text="Ваша заявка была отправлена!",
+        )
+        handle_menu(call.message)
+    elif is_send == "false":
+        handle_donation_adding(call.message)
