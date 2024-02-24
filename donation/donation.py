@@ -4,18 +4,12 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQu
 import calendar
 import datetime
 from bot import bot
-from api import API_REGIONS
-import re
-
-months = ["Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек"]
+from api import API_REGIONS, API_CITIES, API_BLOOD_STATIONS
 
 request_data = {}
+months = ["Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек"]
 
 def handle_donation_adding(message):
-    select_donation_type(message)
-
-
-def select_donation_type(message):
     markup = types.InlineKeyboardMarkup()
     markup.row(InlineKeyboardButton("Цельная кровь", callback_data="donation_blood_type-blood"), InlineKeyboardButton("Плазма", callback_data="donation_blood_type-plasma"))
     markup.row(InlineKeyboardButton("Тромбоциты", callback_data="donation_blood_type-platelets"), InlineKeyboardButton("Эритроциты", callback_data="donation_blood_type-erythrocytes"))
@@ -70,16 +64,112 @@ def choose_is_out(message):
     )
 
 
-def choose_region(message):
-    responce = requests.get(f"https://hackaton.donorsearch.org{API_REGIONS}", params={"Country": "1"}).json()
+def create_regions_markup(page = 1, per_page = 10):
+    responce = requests.get(f"https://hackaton.donorsearch.org{API_REGIONS}", params={"country": "1"}).json()
     responce = responce["results"]
+    markup = InlineKeyboardMarkup()
+    total_pages = len(responce) // per_page + (1 if len(responce) % per_page > 0 else 0)
+    start = (page - 1) * per_page
+    end = start + per_page
+    for region in responce[start:end]:
+        markup.add(InlineKeyboardButton(region["title"], callback_data=f"donation_region-{region["id"]}"))
     
-    print(responce["results"])
+    row = []
+    if page > 1:
+        row.append(InlineKeyboardButton('⬅️', callback_data=f'donation_region_page-{page-1}'))
+    if page < total_pages:
+        row.append(InlineKeyboardButton('➡️', callback_data=f'donation_region_page-{page+1}'))
+    if row:
+        markup.row(*row)
+    return markup
+
+
+def create_cities_markup(region_id, page = 1, per_page = 10):
+    responce = requests.get(f"https://hackaton.donorsearch.org{API_CITIES}", params={"country": "1", "region": f"{region_id}"}).json()
+    responce = responce["results"]
+    markup = InlineKeyboardMarkup()
+    total_pages = len(responce) // per_page + (1 if len(responce) % per_page > 0 else 0)
+    start = (page - 1) * per_page
+    end = start + per_page
+    for city in responce[start:end]:
+        markup.add(InlineKeyboardButton(city["title"], callback_data=f"donation_region_city-{city["id"]}"))
+    
+    row = []
+    if page > 1:
+        row.append(InlineKeyboardButton('⬅️', callback_data=f'donation_region_city_page-{region_id}-{page-1}'))
+    if page < total_pages:
+        row.append(InlineKeyboardButton('➡️', callback_data=f'donation_region_city_page-{region_id}-{page+1}'))
+    if row:
+        markup.row(*row)
+    
+    markup.add(InlineKeyboardButton("Назад к регионам", callback_data="donation_region_back_to_regions"))
+    return markup
+
+
+def choose_region(message):
+    markup = create_regions_markup()
+    bot.edit_message_text(
+        chat_id=message.chat.id, 
+        message_id=message.message_id, 
+        text="Выберите регион: ",
+        reply_markup=markup
+    )
+
+
+def create_blood_stations_markup(page = 1, per_page = 10):
+    responce = requests.get(f"https://hackaton.donorsearch.org{API_BLOOD_STATIONS}", params={"city_id": f"{request_data["city_id"]}"}).json()
+    responce = responce["results"]
+    markup = InlineKeyboardMarkup()
+    total_pages = len(responce) // per_page + (1 if len(responce) % per_page > 0 else 0)
+    start = (page - 1) * per_page
+    end = start + per_page
+    for station in responce[start:end]:
+        markup.add(InlineKeyboardButton(station["title"], callback_data=f"donation_blood_station-{station['id']}"))
+    
+    row = []
+    if page > 1:
+        row.append(InlineKeyboardButton('⬅️', callback_data=f'donation_blood_station_page-{page-1}'))
+    if page < total_pages:
+        row.append(InlineKeyboardButton('➡️', callback_data=f'donation_blood_station_page-{page+1}'))
+    if row:
+        markup.row(*row)
+    
+    return markup
+
+
+def choose_blood_station(message):
+    markup = create_blood_stations_markup()
+    bot.edit_message_text(
+        chat_id=message.chat.id,
+        message_id=message.message_id,
+        text="Выберите центр крови: ",
+        reply_markup=markup
+    )
+
+
+# def choose_is_doc_upload(message):
+#     markup = types.InlineKeyboardMarkup(row_width=2)
+#     upload_now = types.InlineKeyboardButton("Загрузить сейчас", callback_data="donation_is_upload-true")
+#     upload_later = types.InlineKeyboardButton("Загрузить потом", callback_data="donation_is_upload-false")
+#     markup.add(upload_now, upload_later)
+#     bot.edit_message_text(
+#         chat_id=message.chat.id, 
+#         message_id=message.message_id, 
+#         text = """
+#         <b> Загрузить сейчас </b>
+# Справку выданную в центре крови.
+
+# <b>Загрузить потом</b>
+# Справку можно будет загрузить позже. Донация без справки не будет учитываться для пути почетного донора.
+
+#         """, 
+#         reply_markup=markup,
+#         parse_mode="HTML",
+#     )
 
 
 
-
-# Дальше блга нет, тут функции календаря чисто
+# Дальше бога нет, тут функции календаря чисто
 def create_calendar(year, month):
     markup = InlineKeyboardMarkup()
     markup.row(InlineKeyboardButton(f"{months[month-1]} {year}", callback_data=f"donation_select_year-{month}-{year}"))
@@ -129,6 +219,15 @@ def get_calendar(message):
     )
 
 
+@bot.callback_query_handler(func=lambda call: call.data.startswith('donation_blood_type'))
+def select_blood_type(call: CallbackQuery):
+        blood_type = call.data.split('-')[1]
+        request_data["blood_type"] = blood_type
+        print(request_data["blood_type"])
+        message = call.message
+        get_calendar(message)
+
+
 @bot.callback_query_handler(func=lambda call: call.data.startswith('donation_data_'))
 def data_select(call: CallbackQuery):
     request_data["plan_date"] = call.data[14:]
@@ -165,15 +264,6 @@ def select_year(call: CallbackQuery):
     bot.edit_message_text("Выберите месяц и год:", chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup)
 
 
-@bot.callback_query_handler(func=lambda call: call.data.startswith('donation_blood_type'))
-def select_blood_type(call: CallbackQuery):
-        blood_type = call.data.split('-')[1]
-        request_data["blood_type"] = blood_type
-        print(request_data["blood_type"])
-        message = call.message
-        get_calendar(message)
-
-
 @bot.callback_query_handler(func=lambda call: call.data.startswith('donation_payment_type'))
 def select_payment_type(call: CallbackQuery):
     payment_type = call.data.split('-')[1]
@@ -190,3 +280,45 @@ def select_is_out(call: CallbackQuery):
     print(request_data["is_out"])
     message = call.message
     choose_region(message)
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('donation_region'))
+def select_region(call: CallbackQuery):
+    if call.data.startswith("donation_region_page"):
+        page = int(call.data.split('-')[1])
+        markup = create_regions_markup(page=page)
+        bot.edit_message_text(text="Выберите регион: ", chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup)
+    elif call.data.startswith("donation_region-"):
+        region_id = call.data.split('-')[1]
+        markup = create_cities_markup(region_id)
+        bot.edit_message_text(text="Выберите город: ", chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup)
+    elif call.data.startswith("donation_region_city_page"):
+        region_id = call.data.split('-')[1]
+        page = int(call.data.split('-')[2])
+        markup = create_cities_markup(region_id, page=page)
+        bot.edit_message_text(text="Выберите город: ", chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup)
+    elif call.data.startswith("donation_region_city-"):
+        city_id = call.data.split('-')[1]
+        request_data["city_id"] = city_id
+        print(request_data["city_id"])
+        message = call.message
+        choose_blood_station(message)
+    elif call.data.startswith("donation_region_back_to_regions"):
+        markup = create_regions_markup()
+        bot.edit_message_text(text="Выберите регион: ", chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup)
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('donation_blood_station'))
+def select_blood_station(call: CallbackQuery):
+    if call.data.startswith("donation_blood_station_page"):
+        page = int(call.data.split('-')[1])
+        markup = create_blood_stations_markup(page=page)
+        bot.edit_message_text(text="Выберите центр крови: ", chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup)
+    elif call.data.startswith("donation_blood_station-"):
+        blood_station_id = call.data.split('-')[1]
+        request_data["blood_station_id"] = blood_station_id
+        print(request_data["blood_station_id"])
+        #TODO: написать реквест на создание записи
+        #TODO: написать смену данных записи
+        # message = call.message
+        # choose_is_doc_upload(message)
