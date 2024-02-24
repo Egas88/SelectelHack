@@ -2,6 +2,7 @@ import requests
 from telebot import types
 
 from api import *
+from auth_register import users
 from auth_register.validators import password_validator, phone_validator, email_validator
 from bot import bot
 from auth_register.users import users_dict, get_password, get_username
@@ -31,12 +32,24 @@ def handle_change_creds(message):
 def process_register_step(callback):
     chat_id = callback.message.chat.id
     if callback.data == "change_email":
+        if not users.is_possible_input:
+            return
+        else:
+            users.is_possible_input = False
         bot.send_message(chat_id, "📧 Введите новый email:")
         bot.register_next_step_handler(callback.message, process_email_change)
     elif callback.data == "change_phone":
+        if not users.is_possible_input:
+            return
+        else:
+            users.is_possible_input = False
         bot.send_message(chat_id, "☎️ Введите новый телефона:")
         bot.register_next_step_handler(callback.message, process_phone_change)
     elif callback.data == "change_password":
+        if not users.is_possible_input:
+            return
+        else:
+            users.is_possible_input = False
         bot.send_message(chat_id, "🔑 Введите новый пароль!")
         bot.register_next_step_handler(callback.message, process_password_change)
     elif callback.data == "change_go_back":
@@ -75,6 +88,8 @@ def process_password_change(message):
         if resp.status_code == 200:
             users_dict[chat_id]["password"] = password1
             bot.send_message(chat_id, "Пароль успешно изменён!")
+            users.is_possible_input = True
+
             handle_menu(message)
         else:
             return
@@ -100,6 +115,8 @@ def process_phone_change(message):
     if resp.status_code == 200:
         users_dict[chat_id]["phone"] = formatted_phone
         bot.send_message(chat_id, "Телефон успешно изменён!")
+        users.is_possible_input = True
+
         handle_menu(message)
     else:
         return
@@ -123,6 +140,8 @@ def process_email_change(message):
     if resp.status_code == 200:
         users_dict[chat_id]["email"] = email
         bot.send_message(chat_id, "Email успешно изменён!")
+        users.is_possible_input = True
+
         handle_menu(message)
     else:
         return

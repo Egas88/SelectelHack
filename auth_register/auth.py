@@ -1,4 +1,6 @@
 import requests
+
+from auth_register import users
 from auth_register.validators import phone_validator, email_validator
 from auth_register.users import users_dict
 from bot import bot
@@ -58,6 +60,7 @@ def process_password_step(message):
     if resp.status_code == 200:
         bot.send_message(chat_id, "Вы были успешно авторизированы!")
         users_dict[message.chat.id] = cur_user_data
+        users.is_possible_input = True
         handle_menu(message)
 
     else:

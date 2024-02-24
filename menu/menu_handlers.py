@@ -72,7 +72,7 @@ def handle_personal_menu(message):
                                                        callback_data='sub_menu_honorary_donor')
     back_button = types.InlineKeyboardButton('↩️ Назад ', callback_data='change_go_back')
     msg_txt = """
-    <b> Личные настройки ⚙️ </b>
+    <b>⚙️ Личные настройки</b>
     
 💵 Поддержите наш проект и сделайте мир лучше
 

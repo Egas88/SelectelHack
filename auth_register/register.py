@@ -1,6 +1,7 @@
 import requests
 from telebot import types
 
+from auth_register import users
 from auth_register.users import users_dict
 from bot import bot
 from auth_register.validators import password_validator, email_validator, phone_validator
@@ -26,6 +27,7 @@ def process_name_step(message):
     email_btn = types.InlineKeyboardButton('📧 По Email', callback_data="register_email")
     phone_btn = types.InlineKeyboardButton('☎️ По номеру телефона', callback_data="register_phone")
     markup.add(email_btn, phone_btn)
+    users.is_possible_input = True
     bot.send_message(message.chat.id, """<b> Пожалуйста, выберите тип регистрации </b> """, reply_markup=markup, parse_mode="HTML")
     # bot.register_next_step_handler(message, process_register_step)
 
@@ -34,9 +36,17 @@ def process_name_step(message):
 def process_register_step(callback):
     chat_id = callback.message.chat.id
     if callback.data == "register_email":
+        if not users.is_possible_input:
+            return
+        else:
+            users.is_possible_input = False
         bot.send_message(chat_id, "Введите ваш email")
         bot.register_next_step_handler(callback.message, process_email_step)
     elif callback.data == "register_phone":
+        if not users.is_possible_input:
+            return
+        else:
+            users.is_possible_input = False
         bot.send_message(chat_id, "Введите ваш номер телефона")
         bot.register_next_step_handler(callback.message, process_phone_step)
     else:
@@ -73,8 +83,16 @@ def process_password_step(message, reg_type):
     chat_id = message.chat.id
     password = message.text
     if not password_validator(password):
-        bot.send_message(chat_id, "Извините, ваш пароль слишком простой. Не забывайте использовать цифры, строчные и "
-                                  "прописные буквы, а также спецсимволы")
+        msg_txt = """
+                <b> ❗ Пароль не соответствует требованиям </b>
+                
+Длина пароля должна быть больше 8 символов
+
+Также не забывайте использовать цифры, строчные и заглавные буквы, а также спецсимволы
+
+                """
+        bot.send_message(message.chat.id, msg_txt, parse_mode="HTML")
+
         bot.register_next_step_handler(message, process_password_step, reg_type)
         return
 
@@ -132,7 +150,9 @@ def process_confirm_reg(message, reg_type):
         cur_user_data["username"] = cur_user_data["email"] if "email" in cur_user_data else cur_user_data["phone"]
         bot.send_message(chat_id, "Вы были успешно зарегистрированы!")
         users_dict[message.chat.id] = cur_user_data
+        users.is_possible_input = True
         handle_menu(message)
+
     else:
         bot.send_message(chat_id, "Введённый Вами код неверен, повторите ввод ещё раз!")
         bot.register_next_step_handler(message, process_confirm_reg, reg_type)

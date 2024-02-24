@@ -1,5 +1,6 @@
 from telebot import types
 
+import auth_register.users as users
 from auth_register.change_creds.change_creds import handle_change_creds
 from auth_register.register import handle_register
 from auth_register.auth import handle_login
@@ -17,25 +18,39 @@ from blood_station.blood_station import handle_blood_stations_list, handle_blood
 def start(message):
     handle_start(message)
 
+
 @bot.message_handler(commands=['viewBonuses'])
 def view_bonuses_list(message):
     handle_view_bonuses_list(message)
+
 
 @bot.message_handler(commands=['view'])
 def view(message):
     handle_blood_stations_list(message)
 
+
 @bot.callback_query_handler(func=lambda call: call.data.startswith('start_'))
 def message_reply(callback):
     if callback.data == "start_register":
+        if not users.is_possible_input:
+            return
+        else:
+            users.is_possible_input = False
         if callback.message.chat.id in users_dict:
             bot.send_message(callback.message.chat.id, "Вы уже авторизованы!")
+            users.is_possible_input = True
             handle_menu(callback.message)
         else:
             handle_register(callback.message)
     elif callback.data == "start_login":
+        if not users.is_possible_input:
+            return
+        else:
+            users.is_possible_input = False
+
         if callback.message.chat.id in users_dict:
             bot.send_message(callback.message.chat.id, "Вы уже авторизованы!")
+            users.is_possible_input = True
             handle_menu(callback.message)
         else:
             handle_login(callback.message)
