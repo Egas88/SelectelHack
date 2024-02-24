@@ -4,6 +4,7 @@ from auth_register.change_creds.change_creds import handle_change_creds
 from auth_register.register import handle_register
 from auth_register.auth import handle_login
 from menu.menu import handle_menu
+from bonuses.bonuses import handle_view_bonuses_list
 from menu.menu_handlers import *
 from start.start import handle_start
 from donation.donation import handle_donation_adding
@@ -14,16 +15,11 @@ from blood_station.blood_station import handle_blood_stations_list, handle_blood
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    chat_id = message.chat.id
-
-    # Создаем кнопку "Start"
-    start_button = types.KeyboardButton('/start')
-
-    keyboard = types.ReplyKeyboardMarkup()
-    keyboard.add(start_button)
-
     handle_start(message)
 
+@bot.message_handler(commands=['viewBonuses'])
+def view_bonuses_list(message):
+    handle_view_bonuses_list(message)
 
 @bot.message_handler(commands=['view'])
 def view(message):
