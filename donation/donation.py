@@ -6,8 +6,11 @@ import datetime
 from bot import bot
 from api import API_REGIONS, API_CITIES, API_BLOOD_STATIONS
 
+
+blood_types = {"blood": "Цельная кровь", "plasma": "Плазма", "platelets": "Тромбоциты", "erythrocytes": "Эритроциты", "leukocytes": "Гранулоциты"}
 request_data = {}
 months = ["Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек"]
+displayed_data = {}
 
 def handle_donation_adding(message):
     markup = types.InlineKeyboardMarkup()
@@ -184,7 +187,7 @@ def create_calendar(year, month):
             if day == 0:
                 row.append(InlineKeyboardButton(" ", callback_data='ignore'))
             else:
-                row.append(InlineKeyboardButton(str(day), callback_data=f"donation_data_{year}-{str(month).zfill(2)}-{str(day).zfill(2)}"))
+                row.append(InlineKeyboardButton(str(day), callback_data=f"donation_data-{year}-{str(month).zfill(2)}-{str(day).zfill(2)}-{str(day).zfill(2)}.{str(month).zfill(2)}.{year}"))
         markup.row(*row)
     
     return markup
@@ -208,6 +211,14 @@ def create_month_year_selection(year, month):
     return markup
 
 
+def write_data(message):
+    bot.edit_message_text(
+        chat_id=message.chat.id,
+        message_id=message.message_id,
+        text="Введите вы ввели данные: " + str(request_data),
+    )
+
+
 def get_calendar(message):
     now = datetime.datetime.now()
     markup = create_calendar(now.year, now.month)
@@ -223,20 +234,17 @@ def get_calendar(message):
 def select_blood_type(call: CallbackQuery):
         blood_type = call.data.split('-')[1]
         request_data["blood_type"] = blood_type
-        print(request_data["blood_type"])
+        displayed_data["blood_type"] = blood_types[blood_type]
+        print(displayed_data["blood_type"])
         message = call.message
         get_calendar(message)
 
 
-@bot.callback_query_handler(func=lambda call: call.data.startswith('donation_data_'))
+@bot.callback_query_handler(func=lambda call: call.data.startswith('donation_data'))
 def data_select(call: CallbackQuery):
-    request_data["plan_date"] = call.data[14:]
-    print(request_data["plan_date"])
-    bot.edit_message_text(
-        chat_id=call.message.chat.id,
-        message_id=call.message.message_id,
-        text="Вы выбрали " + call.data[14:],
-    )
+    request_data["plan_date"] = call.data.split('-')[1] + "-" + call.data.split('-')[2] + "-" + call.data.split('-')[3]
+    date = call.data.split('-')[4]
+    displayed_data["plan_date"] = date
     message = call.message
     choose_payment_type(message)
 
@@ -268,7 +276,11 @@ def select_year(call: CallbackQuery):
 def select_payment_type(call: CallbackQuery):
     payment_type = call.data.split('-')[1]
     request_data["payment_type"] = payment_type
-    print(request_data["payment_type"])
+    if payment_type == "free":
+        displayed_data["payment_type"] = "Безвозмездно"
+    elif payment_type == "paid":
+        displayed_data["payment_type"] = "Платно"
+    print(displayed_data["payment_type"])
     message = call.message
     choose_is_out(message)
 
@@ -277,7 +289,11 @@ def select_payment_type(call: CallbackQuery):
 def select_is_out(call: CallbackQuery):
     is_out = call.data.split('-')[1]
     request_data["is_out"] = is_out
-    print(request_data["is_out"])
+    if is_out == "true":
+        displayed_data["is_out"] = "Выездная акция"
+    elif is_out == "false":
+        displayed_data["is_out"] = "Стационарный пункт"
+    print(displayed_data["is_out"])
     message = call.message
     choose_region(message)
 
@@ -300,7 +316,8 @@ def select_region(call: CallbackQuery):
     elif call.data.startswith("donation_region_city-"):
         city_id = call.data.split('-')[1]
         request_data["city_id"] = city_id
-        print(request_data["city_id"])
+        displayed_data["city"] = requests.get(f"https://hackaton.donorsearch.org{API_CITIES}/{city_id}").json()["results"]["title"]
+        print(displayed_data["city"])
         message = call.message
         choose_blood_station(message)
     elif call.data.startswith("donation_region_back_to_regions"):
@@ -317,7 +334,9 @@ def select_blood_station(call: CallbackQuery):
     elif call.data.startswith("donation_blood_station-"):
         blood_station_id = call.data.split('-')[1]
         request_data["blood_station_id"] = blood_station_id
+        displayed_data["blood_station"] = call.data.split('-')[2]
         print(request_data["blood_station_id"])
+        print(displayed_data["blood_station"])
         #TODO: написать реквест на создание записи
         #TODO: написать смену данных записи
         # message = call.message
