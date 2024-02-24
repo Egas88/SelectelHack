@@ -378,8 +378,6 @@ def select_send_or_change(call: CallbackQuery):
     if is_send == "true":
         request_data["status"] = "active"
         responce = requests.post(API_DONATION_PLAN, json=request_data, auth=(get_username(call.message.chat.id), get_password(call.message.chat.id)))
-        print(request_data)
-        print(responce)
         #add_notification_on_donation_plan(call.message.chat.id, request_data["date"], create_notification_message())
         bot.edit_message_text(
             chat_id=call.message.chat.id,

@@ -2,6 +2,8 @@ from bot import bot
 from api import API_DONATION_PLAN, API_DONATIONS
 from auth_register.users import get_username, get_password
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
+from telebot import types
+from api import API_DONATION_PLAN_ID, API_DONATIONS_ID
 import requests
 
 
@@ -18,9 +20,9 @@ def create_donations_markup(message, is_plan, page = 1, per_page = 10):
     end = start + per_page
     for station in responce[start:end]:
         if is_plan:
-            markup.add(InlineKeyboardButton(text = f"Вы запланировали посещение на {station["plan_date"]}. {f"На выездную акцию в {station["city"]["title"]}" if station["is_out"] == "true" else f"В центре крови {station['blood_station']['title']}" if station["blood_station"] is not None else ""}", callback_data=f"donations_list_cell-{station['id']}"))
+            markup.add(InlineKeyboardButton(text = f"Вы запланировали посещение на {station["plan_date"]}. {f"На выездную акцию в {station["city"]["title"]}" if station["is_out"] == "true" else f"В центре крови {station['blood_station']['title']}" if station["blood_station"] is not None else ""}", callback_data=f"donations_list_cell-{station['id']}-{is_plan}"))
         else:
-            markup.add(InlineKeyboardButton(text = f"Вы были записаны на {station["donate_at"]}. {f"На выездную акцию в {station["city"]["title"]}" if station["is_out"] == "true" else f"В центре крови {station['blood_station']['title']}" if station["blood_station"] is not None else ""}", callback_data=f"donations_list_cell-{station['id']}"))
+            markup.add(InlineKeyboardButton(text = f"Вы были записаны на {station["donate_at"]}. {f"На выездную акцию в {station["city"]["title"]}" if station["is_out"] == "true" else f"В центре крови {station['blood_station']['title']}" if station["blood_station"] is not None else ""}", callback_data=f"donations_list_cell-{station['id']}-{is_plan}"))
     row = []
     if page > 1:
         row.append(InlineKeyboardButton('⬅️', callback_data=f'donations_list_page-{page-1}-{is_plan}'))
@@ -35,16 +37,17 @@ def create_donations_markup(message, is_plan, page = 1, per_page = 10):
     return markup
 
 
-def create_delete_change_donations_markup(message):
+def create_change_donations_markup(message, donation_id, is_plan):
     markup = InlineKeyboardMarkup(row_width=2)
-    markup.add(InlineKeyboardButton(text = "Удалить донацию", callback_data="get_donations_delete"))
-    markup.add(InlineKeyboardButton(text = "Изменить донацию", callback_data="get_donations_change"))
-    markup.add(InlineKeyboardButton(text = "Посмотреть донации", callback_data="get_donations_see"))
-    markup.add(InlineKeyboardButton(text = "↩️   Назад в меню", callback_data="change_go_back"))
+    delete_donation_btn = types.InlineKeyboardButton(text = "Удалить донацию", callback_data=f"get_donations-{donation_id}-delete-{is_plan}")
+    #change_donation_btn = types.InlineKeyboardButton(text = "Изменить донацию", callback_data=f"get_donations-{donation_id}-change-{is_plan}")
+    choose_donations_btn = types.InlineKeyboardButton(text = "↩️  Вернуться к выбору донации", callback_data=f"get_donations_back-{is_plan}")
+    back_to_menu_btn = types.InlineKeyboardButton(text = "↩️   Назад в меню", callback_data="change_go_back")
+    markup.add(delete_donation_btn, choose_donations_btn, back_to_menu_btn)
     bot.edit_message_text(
         chat_id=message.chat.id,
         message_id=message.message_id,
-        text="Выберите действие c донацией",
+        text="Выберите действие c донацией:",
         reply_markup=markup
     )
 
@@ -78,10 +81,37 @@ def list_donations(call: CallbackQuery):
         bot.edit_message_text(text=text, chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup)
     elif call.data.startswith('donations_list_cell'):
         donation_id = call.data.split('-')[1]
-        markup = InlineKeyboardMarkup()
+        is_plan = call.data.split('-')[2] == "True"
+        create_change_donations_markup(call.message, donation_id, is_plan)
+        
 
 
-
-
-
-
+@bot.callback_query_handler(func=lambda call: call.data.startswith('get_donations'))
+def change_donation(call: CallbackQuery):
+    if call.data.startswith("get_donations_back"):
+        is_plan = call.data.split('-')[2] == "True"
+        handle_see_donations(call.message, is_plan)
+    elif call.data.startswith("get_donations"):
+        donation_id = call.data.split('-')[1]
+        is_plan = call.data.split('-')[3] == "True"
+        if call.data.split('-')[2] == "delete":
+            if is_plan:
+                requests.delete(API_DONATION_PLAN_ID.format(donation_id), auth=(get_username(call.message.chat.id), get_password(call.message.chat.id)))
+                markup = create_donations_markup(call.message,is_plan)
+                bot.edit_message_text(
+                    chat_id=call.message.chat.id,
+                    message_id=call.message.message_id,
+                    text="Заявка была удалена!",
+                    reply_markup=markup
+                )
+            else:
+                requests.delete(API_DONATIONS_ID.format(donation_id), auth=(get_username(call.message.chat.id), get_password(call.message.chat.id)))
+                markup = create_donations_markup(call.message, is_plan)
+                bot.edit_message_text(
+                    chat_id=call.message.chat.id,
+                    message_id=call.message.message_id,
+                    text="Заявка была удалена!",
+                    reply_markup=markup
+                )
+        # elif call.data.split('-')[2] == "change":
+        #     change_donation(call.message, donation_id)
