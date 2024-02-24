@@ -191,34 +191,27 @@ def print_general_info(user_id, city_id, blood_group):
 def print_blood_stations_cards(user_id, blood_station_ids):
     result_messages = []
     current_message = ""
-    i = 0
-    for blood_station_id in blood_station_ids:
-        i += 1
+    for i, blood_station_id in enumerate(blood_station_ids):
         url = 'https://hackaton.donorsearch.org/api/blood_stations/{}/'
         response = requests.get(url=url.format(blood_station_id))
 
-        current_message += str(i) + ". " + form_blood_station_details(response.json())
-        if len(current_message) > 2000:
-            result_messages.append(current_message)
-            current_message = ""
-
-    result_messages.append(current_message)
-
-    for i, result_message in enumerate(result_messages):
+        current_message += "🏥 " + form_blood_station_details(response.json())
         if i == len(result_messages) - 1:
             markup = types.InlineKeyboardMarkup(row_width=1)
             back_button = types.InlineKeyboardButton('↩️ Назад ', callback_data='change_go_back')
             markup.add(back_button)
 
-            bot.send_message(user_id, result_message, reply_markup=markup, parse_mode="HTML", disable_web_page_preview=True)
+            bot.send_message(user_id, current_message, reply_markup=markup, parse_mode="HTML", disable_web_page_preview=True)
         else:
-            bot.send_message(user_id, result_message)
+            bot.send_message(user_id, current_message, parse_mode="HTML")
+        current_message = ""
+
 
 def form_blood_station_details(result_json):
     result_message = ""
     result_message += result_json["title"]
     result_message += "\nТелефон Центра крови:\n"
-    result_message += result_json["phones"]
+    result_message += "<code>" + result_json["phones"] + "</code>"
 
     site_link = result_json["parser_url"]
     if site_link is not None:
