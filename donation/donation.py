@@ -217,40 +217,9 @@ def choose_is_need(message):
     if displayed_data["upload_now"] == "Загрузить сейчас":
         header = "Справка выданная в центре крови."
         file_name = displayed_data["file_name"]
-        bot.send_message(
-            chat_id=message.chat.id,
-            text=f"""
-    Вы выбрали следующие параметры:
-
-    <b>Тип крови</b>
-    {displayed_data["blood_type"]}
-
-    <b>Дата</b>
-    {displayed_data["plan_date"]}
-
-    <b>Тип донации</b>
-    {displayed_data["payment_type"]}
-
-    <b>Место сдачи</b>
-    {displayed_data["is_out"]}
-
-    <b>Город</b>
-    {displayed_data["city"]}
-
-    {f"""<b>Центр крови</b>
-    {displayed_data["blood_station"]}""" if displayed_data["is_out"] == "false" else ""}
-
-    <b> Справка </b>
-    {displayed_data["upload_now"]}
-
-    <b> {header} </b>
-    {file_name}
-            """,
-            reply_markup=markup,
-            parse_mode="HTML"
-        )
     else:
-        bot.edit_message_text(
+        bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
+    bot.send_message(
             chat_id=message.chat.id,
             text=f"""
     Вы выбрали следующие параметры:
@@ -282,6 +251,7 @@ def choose_is_need(message):
             reply_markup=markup,
             parse_mode="HTML"
         )
+        
 
 
 # Дальше бога нет, тут функции календаря чисто
@@ -456,7 +426,7 @@ def select_send_or_change(call: CallbackQuery):
     is_send = call.data.split('-')[1]
     if is_send == "true":
         request_data["image_id"] = "1"
-        responce = requests.post(API_DONATIONS, data=request_data, auth=(get_username, get_password))
+        responce = requests.post(API_DONATIONS, json=request_data, auth=(get_username(call.message.chat.id), get_password(call.message.chat.id)))
         print(request_data)
         print(responce)
         bot.edit_message_text(

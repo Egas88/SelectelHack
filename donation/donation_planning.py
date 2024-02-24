@@ -275,7 +275,7 @@ def data_select(call: CallbackQuery):
             reply_markup=create_calendar(datetime.datetime.now().year, datetime.datetime.now().month),
         )
     else:
-        request_data["plan date"] = call.data.split('-')[1] + "-" + call.data.split('-')[2] + "-" + call.data.split('-')[3]
+        request_data["plan_date"] = call.data.split('-')[1] + "-" + call.data.split('-')[2] + "-" + call.data.split('-')[3]
         date = call.data.split('-')[4]
         displayed_data["plan_date"] = date
         message = call.message
@@ -377,7 +377,7 @@ def select_send_or_change(call: CallbackQuery):
     is_send = call.data.split('-')[1]
     if is_send == "true":
         request_data["status"] = "active"
-        responce = requests.post(API_DONATION_PLAN, data=request_data, auth=(get_username(call.message.chat.id), get_password(call.message.chat.id)))
+        responce = requests.post(API_DONATION_PLAN, json=request_data, auth=(get_username(call.message.chat.id), get_password(call.message.chat.id)))
         print(request_data)
         print(responce)
         #add_notification_on_donation_plan(call.message.chat.id, request_data["date"], create_notification_message())
