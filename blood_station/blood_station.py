@@ -214,8 +214,6 @@ def print_blood_stations_cards(user_id, blood_station_ids):
         else:
             bot.send_message(user_id, result_message)
 
-
-
 def form_blood_station_details(result_json):
     result_message = ""
     result_message += result_json["title"]
