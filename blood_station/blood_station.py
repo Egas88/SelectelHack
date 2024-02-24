@@ -7,6 +7,7 @@ from cities.cities import get_city_id_by_name
 
 # def process_blood_stations_step(message):
 from donation.donation import create_regions_markup, create_cities_markup, choose_blood_station
+from menu.menu import handle_menu
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('donation_region'))
@@ -50,6 +51,7 @@ def handle_blood_stations_need_list(message):
         if current_city_id is city_id:
             allowed_blood_stations_need.append(blood_stations_need[i])
     print_blood_stations_needs_cards(message.chat.id, allowed_blood_stations_need)
+    handle_menu(message)
 
 def get_blood_stations_with_needs_by_city_id(city_id):
     url = 'https://hackaton.donorsearch.org/api/needs'
@@ -173,6 +175,7 @@ def handle_blood_stations_list(message):
 
     #print_general_info(message.chat.id, city_id, blood_group)
     print_blood_stations_cards(message.chat.id, blood_station_ids)
+    handle_menu(message)
 
 def print_general_info(user_id, city_id, blood_group):
     msgResult = """
