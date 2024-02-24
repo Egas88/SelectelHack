@@ -14,7 +14,7 @@ def handle_view_bonuses_list(message):
     url = API_BONUSES
     response = requests.get(url)
 
-    print(response.json())
+    #print(response.json())
     response_json = response.json()
     bonuses = response_json["results"]
 
@@ -75,7 +75,7 @@ def get_info_by_bonus_id(bonus_id):
     response = requests.get(url.format(bonus_id))
 
     response_json = response.json()
-    print(response_json)
+    #print(response_json)
     return response_json
 
 def leave_feedback_by_bonus_id(user_id, bonus_id, comment, rating):
@@ -83,5 +83,5 @@ def leave_feedback_by_bonus_id(user_id, bonus_id, comment, rating):
     response = requests.patch(url.format(bonus_id), data={"rating": rating, "comment": comment}, auth=(users_dict[user_id]["username"], users_dict[user_id]["password"]))
 
     response_json = response.json()
-    print(response_json)
+    #print(response_json)
     return response_json

@@ -6,6 +6,7 @@ import datetime
 from bot import bot
 from api import API_REGIONS, API_CITIES, API_BLOOD_STATIONS, API_DONATION_PLAN
 from auth_register.users import get_username, get_password
+#from notification_manager.notifications import add_notification_on_donation_plan
 from menu.menu import handle_menu
 
 
@@ -200,6 +201,10 @@ def choose_is_need(message):
     )
 
 
+def create_notification_message():
+    return f"""Напомнаем вам о планированной донации сегодня {f"""в {displayed_data["blood_station"]}""" if displayed_data["is_out"] == "false" else ""}"""
+
+
 # Дальше бога нет, тут функции календаря чисто
 def create_calendar(year, month):
     markup = InlineKeyboardMarkup()
@@ -373,6 +378,7 @@ def select_send_or_change(call: CallbackQuery):
     if is_send == "true":
         request_data["status"] = "active"
         requests.post(API_DONATION_PLAN, data=request_data, auth=(get_username, get_password))
+        #add_notification_on_donation_plan(call.message.chat.id, request_data["date"], create_notification_message())
         bot.edit_message_text(
             chat_id=call.message.chat.id,
             message_id=call.message.message_id,

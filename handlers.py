@@ -12,6 +12,7 @@ from donation.donation import handle_donation_adding
 from auth_register.users import users_dict
 from bot import bot
 from blood_station.blood_station import handle_blood_stations_list
+#from db.create_data import create_notifications_table
 
 
 @bot.message_handler(commands=['start'])
@@ -95,4 +96,5 @@ def message_reply(callback):
 
 
 if __name__ == "__main__":
+    #create_notifications_table()
     bot.polling(none_stop=True, interval=0)

@@ -411,5 +411,5 @@ def get_blood_stations_needs_by_id(blood_station_id):
     response = requests.get(url.format(blood_station_id))
 
     response_json = response.json()
-    print()
+    #print()
     return response_json
