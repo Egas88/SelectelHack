@@ -11,7 +11,7 @@ from start.start import handle_start
 from donation.donation import handle_donation_adding
 from auth_register.users import users_dict
 from bot import bot
-from blood_station.blood_station import handle_blood_stations_list, handle_blood_stations_need_list
+from blood_station.blood_station import handle_blood_stations_list
 
 
 @bot.message_handler(commands=['start'])
