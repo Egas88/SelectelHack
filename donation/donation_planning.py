@@ -311,7 +311,7 @@ def select_payment_type(call: CallbackQuery):
     request_data["payment_type"] = payment_type
     if payment_type == "free":
         displayed_data["payment_type"] = "Безвозмездно"
-    elif payment_type == "paid":
+    else:
         displayed_data["payment_type"] = "Платно"
     message = call.message
     choose_is_out(message)
@@ -377,7 +377,9 @@ def select_send_or_change(call: CallbackQuery):
     is_send = call.data.split('-')[1]
     if is_send == "true":
         request_data["status"] = "active"
-        requests.post(API_DONATION_PLAN, data=request_data, auth=(get_username, get_password))
+        responce = requests.post(API_DONATION_PLAN, data=request_data, auth=(get_username(call.message.chat.id), get_password(call.message.chat.id)))
+        print(request_data)
+        print(responce)
         #add_notification_on_donation_plan(call.message.chat.id, request_data["date"], create_notification_message())
         bot.edit_message_text(
             chat_id=call.message.chat.id,

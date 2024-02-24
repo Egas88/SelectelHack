@@ -217,38 +217,71 @@ def choose_is_need(message):
     if displayed_data["upload_now"] == "Загрузить сейчас":
         header = "Справка выданная в центре крови."
         file_name = displayed_data["file_name"]
-    bot.send_message(
-        chat_id=message.chat.id,
-        text=f"""
-Вы выбрали следующие параметры:
+        bot.send_message(
+            chat_id=message.chat.id,
+            text=f"""
+    Вы выбрали следующие параметры:
 
-<b>Тип крови</b>
-{displayed_data["blood_type"]}
+    <b>Тип крови</b>
+    {displayed_data["blood_type"]}
 
-<b>Дата</b>
-{displayed_data["plan_date"]}
+    <b>Дата</b>
+    {displayed_data["plan_date"]}
 
-<b>Тип донации</b>
-{displayed_data["payment_type"]}
+    <b>Тип донации</b>
+    {displayed_data["payment_type"]}
 
-<b>Место сдачи</b>
-{displayed_data["is_out"]}
+    <b>Место сдачи</b>
+    {displayed_data["is_out"]}
 
-<b>Город</b>
-{displayed_data["city"]}
+    <b>Город</b>
+    {displayed_data["city"]}
 
-{f"""<b>Центр крови</b>
-{displayed_data["blood_station"]}""" if displayed_data["is_out"] == "false" else ""}
+    {f"""<b>Центр крови</b>
+    {displayed_data["blood_station"]}""" if displayed_data["is_out"] == "false" else ""}
 
-<b> Справка </b>
-{displayed_data["upload_now"]}
+    <b> Справка </b>
+    {displayed_data["upload_now"]}
 
-<b> {header} </b>
-{file_name}
-        """,
-        reply_markup=markup,
-        parse_mode="HTML"
-    )
+    <b> {header} </b>
+    {file_name}
+            """,
+            reply_markup=markup,
+            parse_mode="HTML"
+        )
+    else:
+        bot.edit_message_text(
+            chat_id=message.chat.id,
+            text=f"""
+    Вы выбрали следующие параметры:
+
+    <b>Тип крови</b>
+    {displayed_data["blood_type"]}
+
+    <b>Дата</b>
+    {displayed_data["plan_date"]}
+
+    <b>Тип донации</b>
+    {displayed_data["payment_type"]}
+
+    <b>Место сдачи</b>
+    {displayed_data["is_out"]}
+
+    <b>Город</b>
+    {displayed_data["city"]}
+
+    {f"""<b>Центр крови</b>
+    {displayed_data["blood_station"]}""" if displayed_data["is_out"] == "false" else ""}
+
+    <b> Справка </b>
+    {displayed_data["upload_now"]}
+
+    <b> {header} </b>
+    {file_name}
+            """,
+            reply_markup=markup,
+            parse_mode="HTML"
+        )
 
 
 # Дальше бога нет, тут функции календаря чисто
@@ -357,7 +390,7 @@ def select_payment_type(call: CallbackQuery):
     request_data["payment_type"] = payment_type
     if payment_type == "free":
         displayed_data["payment_type"] = "Безвозмездно"
-    elif payment_type == "paid":
+    else:
         displayed_data["payment_type"] = "Платно"
     message = call.message
     choose_is_out(message)
@@ -423,7 +456,9 @@ def select_send_or_change(call: CallbackQuery):
     is_send = call.data.split('-')[1]
     if is_send == "true":
         request_data["image_id"] = "1"
-        requests.post(API_DONATIONS, data=request_data, auth=(get_username, get_password))
+        responce = requests.post(API_DONATIONS, data=request_data, auth=(get_username, get_password))
+        print(request_data)
+        print(responce)
         bot.edit_message_text(
             chat_id=call.message.chat.id,
             message_id=call.message.message_id,

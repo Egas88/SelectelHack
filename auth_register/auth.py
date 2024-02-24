@@ -103,5 +103,6 @@ def process_password_step(message):
         handle_menu(message)
 
     else:
+        users.additional_input = True
         bot.send_message(chat_id, "❌ Введённые данные неверны")
         handle_login(message)
