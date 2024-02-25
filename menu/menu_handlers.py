@@ -4,6 +4,7 @@ import requests
 
 from auth_register import users
 from auth_register.change_creds.change_creds import handle_change_creds
+
 from blood_station.blood_station import handle_blood_stations_list, handle_bs_need
 from bot import bot
 from donation.donation import handle_donation_adding
@@ -135,7 +136,8 @@ def handle_articles_menu(message):
         else:
             media_group.append(InputMediaPhoto(photo_response))
 
-    bot.send_media_group(message.chat.id, media=media_group)
+    message_to_save = bot.send_media_group(message.chat.id, media=media_group)
+    users.old_man_pic_delete_message = message_to_save
     bot.send_message(message.chat.id, "Изучить эти новости и просмотреть ещё больше новостей Вы можете получить нажав по кнопке ниже", reply_markup=markup, parse_mode="HTML")
 
 def get_last_news():

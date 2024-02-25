@@ -63,7 +63,9 @@ def process_register_step(callback):
         bot.register_next_step_handler(callback.message, process_password_change)
     elif callback.data == "change_go_back":
         if users.is_aricles:
-            pass
+            for m in users.old_man_pic_delete_message:
+                bot.delete_message(chat_id=m.chat.id, message_id=m.message_id)
+            users.is_aricles = False
 
         users.is_reg = False
         users.is_login = False
