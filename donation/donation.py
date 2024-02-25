@@ -6,6 +6,7 @@ import datetime
 from bot import bot
 from api import API_REGIONS, API_CITIES, API_BLOOD_STATIONS, API_DONATIONS
 from auth_register.users import get_username, get_password
+from notification_manager.notifications import add_notification_on_donation_plan
 from menu.menu import handle_menu
 
 
@@ -224,22 +225,22 @@ def choose_is_need(message):
             text=f"""
     Вы выбрали следующие параметры:
 
-<b>Тип крови</b>
+<b>🩸Тип крови</b>
 {displayed_data["blood_type"]}
 
 <b>Дата</b>
 {displayed_data["plan_date"]}
 
-<b>Тип донации</b>
+<b>💵Тип донации</b>
 {displayed_data["payment_type"]}
 
-<b>Место сдачи</b>
+<b>🚐Место сдачи</b>
 {displayed_data["is_out"]}
 
-<b>Город</b>
+<b>🏥Город</b>
 {displayed_data["city"]}
 
-{f'''<b>Центр крови</b>
+{f'''<b>💉Центр крови</b>
 {displayed_data["blood_station"]}''' if displayed_data["is_out"] == "false" else ""}
 
 <b> Справка </b>
@@ -252,6 +253,9 @@ def choose_is_need(message):
             parse_mode="HTML"
         )
 
+
+def create_notification_message():
+    return f"""Напомнаем вам о запланированной донации сегодня {f'''в {displayed_data["blood_station"]}''' if displayed_data["is_out"] == "false" else ""}"""
 
 
 # Дальше бога нет, тут функции календаря чисто
@@ -427,6 +431,7 @@ def select_send_or_change(call: CallbackQuery):
     if is_send == "true":
         request_data["image_id"] = "1"
         responce = requests.post(API_DONATIONS, json=request_data, auth=(get_username(call.message.chat.id), get_password(call.message.chat.id)))
+        add_notification_on_donation_plan(call.message.chat.id, request_data["date"], create_notification_message())
         bot.edit_message_text(
             chat_id=call.message.chat.id,
             message_id=call.message.message_id,
