@@ -237,12 +237,6 @@ def choose_is_need(message):
     <b>Город</b>
     {displayed_data["city"]}
 
-    {f"""<b>Центр крови</b>
-    {displayed_data["blood_station"]}""" if displayed_data["is_out"] == "false" else ""}
-
-    <b> Справка </b>
-    {displayed_data["upload_now"]}
-
     <b> {header} </b>
     {file_name}
             """,
@@ -270,8 +264,8 @@ def choose_is_need(message):
     <b>Город</b>
     {displayed_data["city"]}
 
-    {f"""<b>Центр крови</b>
-    {displayed_data["blood_station"]}""" if displayed_data["is_out"] == "false" else ""}
+    {f'''<b>Центр крови</b>
+    {displayed_data["blood_station"]}''' if displayed_data["is_out"] == "false" else ""}
 
     <b> Справка </b>
     {displayed_data["upload_now"]}
