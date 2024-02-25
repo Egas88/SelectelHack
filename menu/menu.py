@@ -20,7 +20,7 @@ def handle_menu(message):
 
     # Геймификация
 
-    gamification_btn = types.InlineKeyboardButton('Геймификация', callback_data='menu_gamification')
+    gamification_btn = types.InlineKeyboardButton('Спецпроекты', callback_data='menu_gamification')
 
     #####
 

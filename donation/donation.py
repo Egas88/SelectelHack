@@ -63,10 +63,10 @@ def choose_is_out(message):
         chat_id=message.chat.id, 
         message_id=message.message_id, 
         text = """
-<b> Стационарый пункт </b>
+<b>🏥 Стационарый пункт </b>
 Центр крови или станция переливания в вашем городе
 
-<b>Выездная акция</b>
+<b>🚐 Выездная акция</b>
 День донора, выезды в ВУЗы, передвижные мобильные бригады
 
 Выберите место сдачи: 
@@ -175,10 +175,10 @@ def download_pdf(message):
         chat_id=message.chat.id,
         message_id=message.message_id,
         text="""
-<b> Загрузить сейчас </b>
+📈 <b> Загрузить сейчас </b>
 Справку выданную в центре крови.
 
-<b> Загрузить потом </b>
+📉 <b> Загрузить потом </b>
 Справку можно будет загрузить позже. Донация без справки не будет учитываться для пути почетного донора.
         """,
         reply_markup=markup,
@@ -447,7 +447,7 @@ def select_send_or_change(call: CallbackQuery):
 def select_back(call: CallbackQuery):
     if call.data.split("-")[1] == "true":
         request_data["with_image"] = "true"
-        displayed_data["upload_now"] = "Загрузить сейчас"
+        displayed_data["upload_now"] = "📈 Загрузить сейчас"
         bot.edit_message_text(
             chat_id=call.message.chat.id,
             message_id=call.message.message_id,
@@ -456,6 +456,6 @@ def select_back(call: CallbackQuery):
         bot.register_next_step_handler(call.message, handle_docs)
     else:
         request_data["with_image"] = "false"
-        displayed_data["upload_now"] = "Загрузить потом"
+        displayed_data["upload_now"] = "📉 Загрузить потом"
         message = call.message
         choose_is_need(message)
