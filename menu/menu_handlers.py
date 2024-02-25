@@ -7,6 +7,7 @@ from donation.donation import handle_donation_adding
 from donation.donation_planning import handle_donation_planning
 from donation.guide import handle_blood_donation_guide
 from donation.get_donations import handle_see_donations
+from events.events import handle_events
 
 
 def handle_donations_menu(message):
@@ -127,11 +128,10 @@ def process_register_step(callback):
         handle_blood_stations_list(callback.message)
     elif callback.data == "sub_menu_address_needs":
         handle_bs_need(callback.message)
-        #handle_blood_stations_need_list(callback.message)
     elif callback.data == "sub_menu_game_status":
         pass
     elif callback.data == "sub_menu_games_projects":
-        pass
+        handle_events(callback.message)
     elif callback.data == "sub_menu_donate":
         pass
     elif callback.data == "sub_menu_change_personal":
