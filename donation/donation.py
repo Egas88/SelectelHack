@@ -251,7 +251,7 @@ def choose_is_need(message):
             reply_markup=markup,
             parse_mode="HTML"
         )
-        
+
 
 
 # Дальше бога нет, тут функции календаря чисто
@@ -426,7 +426,7 @@ def select_send_or_change(call: CallbackQuery):
     is_send = call.data.split('-')[1]
     if is_send == "true":
         request_data["image_id"] = "1"
-        responce = requests.post(API_DONATIONS, json=request_data, auth=(get_username(call.message.chat.id), get_password(call.message.chat.id)))
+        responce = requests.post(API_DONATIONS, data=request_data, auth=(get_username, get_password))
         print(request_data)
         print(responce)
         bot.edit_message_text(

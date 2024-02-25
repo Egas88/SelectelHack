@@ -62,6 +62,9 @@ def process_register_step(callback):
         bot.send_message(chat_id, "🔑 Введите новый пароль!")
         bot.register_next_step_handler(callback.message, process_password_change)
     elif callback.data == "change_go_back":
+        if users.is_aricles:
+            pass
+
         users.is_reg = False
         users.is_login = False
         users.is_change_pass = False
