@@ -33,18 +33,20 @@
 #     connection.close()
 
 
-# def get_notifications():
+# def get_nearest_notification():
 #     connection = get_connection()
 #     cursor = connection.cursor()
 
 #     cursor.execute('''
-#         SELECT id, chat_id, message FROM notifications
-#         WHERE notify_time <= datetime('now')
+#         SELECT * FROM notifications
+#             WHERE notify_time >= datetime('now')
+#             ORDER BY notify_time ASC
+#             LIMIT 1;
 #     ''')
 
-#     notifications = cursor.fetchall()
+#     notification = cursor.fetchone()
 #     connection.close()
-#     return notifications
+#     return notification
 
 
 # def delete_notification(notification_id):
