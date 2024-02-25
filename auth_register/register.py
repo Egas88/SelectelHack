@@ -124,7 +124,7 @@ def process_password_step(message, reg_type):
     cur_user_data["password"] = message.text
 
     if reg_type == "phone":
-        bot.send_message(chat_id, "✔️ На указанный номер было выслато сообщение с СМС кодом. Введите его ниже для "
+        bot.send_message(chat_id, "✔️ На указанный номер было выслано сообщение с СМС кодом. Введите его ниже для "
                                   "подтверждения")
         body = {
             "phone": cur_user_data["phone"],
@@ -134,7 +134,7 @@ def process_password_step(message, reg_type):
         }
 
     elif reg_type == "email":
-        bot.send_message(chat_id, "✔️ На указанный Email было выслато сообщение с кодом. Введите его ниже для "
+        bot.send_message(chat_id, "✔️ На указанный Email было выслано сообщение с кодом. Введите его ниже для "
                                   "подтверждения")
         body = {
             "email": cur_user_data["email"],

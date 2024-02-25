@@ -6,7 +6,7 @@ import datetime
 from bot import bot
 from api import API_REGIONS, API_CITIES, API_BLOOD_STATIONS, API_DONATION_PLAN
 from auth_register.users import get_username, get_password
-#from notification_manager.notifications import add_notification_on_donation_plan
+from notification_manager.notifications import add_notification_on_donation_plan
 from menu.menu import handle_menu
 
 
@@ -64,10 +64,10 @@ def choose_is_out(message):
         chat_id=message.chat.id, 
         message_id=message.message_id, 
         text = """
-<b> Стационарый пункт </b>
+<b>🏥 Стационарый пункт </b>
 Центр крови или станция переливания в вашем городе
 
-<b>Выездная акция</b>
+<b>🚐 Выездная акция</b>
 День донора, выезды в ВУЗы, передвижные мобильные бригады
 
 Выберите место сдачи: 
@@ -178,22 +178,22 @@ def choose_is_need(message):
         text=f"""
 Вы выбрали следующие параметры:
 
-<b>Тип крови</b>
+<b>🩸Тип крови</b>
 {displayed_data["blood_type"]}
 
 <b>Дата</b>
 {displayed_data["plan_date"]}
 
-<b>Тип донации</b>
+<b>💵Тип донации</b>
 {displayed_data["payment_type"]}
 
-<b>Место сдачи</b>
+<b>🚐Место сдачи</b>
 {displayed_data["is_out"]}
 
-<b>Город</b>
+<b>🏥Город</b>
 {displayed_data["city"]}
 
-{f'''<b>Центр крови</b>
+{f'''<b>💉Центр крови</b>
 {displayed_data["blood_station"]}''' if displayed_data["is_out"] == "false" else ""}
 """,
         reply_markup=markup,
@@ -202,7 +202,7 @@ def choose_is_need(message):
 
 
 def create_notification_message():
-    return f"""Напомнаем вам о планированной донации сегодня {f'''в {displayed_data["blood_station"]}''' if displayed_data["is_out"] == "false" else ""}"""
+    return f"""Напомнаем вам о запланированной донации сегодня {f'''в {displayed_data["blood_station"]}''' if displayed_data["is_out"] == "false" else ""}"""
 
 
 # Дальше бога нет, тут функции календаря чисто
@@ -378,9 +378,7 @@ def select_send_or_change(call: CallbackQuery):
     if is_send == "true":
         request_data["status"] = "active"
         responce = requests.post(API_DONATION_PLAN, json=request_data, auth=(get_username(call.message.chat.id), get_password(call.message.chat.id)))
-        print(request_data)
-        print(responce)
-        #add_notification_on_donation_plan(call.message.chat.id, request_data["date"], create_notification_message())
+        add_notification_on_donation_plan(call.message.chat.id, request_data["date"], create_notification_message())
         bot.edit_message_text(
             chat_id=call.message.chat.id,
             message_id=call.message.message_id,
