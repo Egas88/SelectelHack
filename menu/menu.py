@@ -10,7 +10,7 @@ def handle_menu(message):
     # Донации
     donation_btn = types.InlineKeyboardButton('Донации', callback_data='menu_donations')
 
-    #######
+    ########
 
     # Центры крови
 
