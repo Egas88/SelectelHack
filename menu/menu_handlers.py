@@ -58,44 +58,36 @@ def handle_blood_centers_menu(message):
 def handle_gamification_menu(message):
     markup = types.InlineKeyboardMarkup(row_width=1)
 
-    top_status_button = types.InlineKeyboardButton('Узнать статус геймификации в топе',
-                                                   callback_data='sub_menu_game_status')
-    games_projects_button = types.InlineKeyboardButton('Игры и спецпроекты', callback_data='sub_menu_games_projects')
+    # top_status_button = types.InlineKeyboardButton('Узнать статус геймификации в топе',
+    #                                                callback_data='sub_menu_game_status')
+    games_projects_button = types.InlineKeyboardButton('Спецпроекты', callback_data='sub_menu_games_projects')
     back_button = types.InlineKeyboardButton('↩️ Назад ', callback_data='change_go_back')
 
     msg_txt = """
-    <b> Геймификация 🕹️ </b>
-    
-🎲 Узнайте свой стаутс геймификации!
+    <b> Спецпроекты 🕹️ </b>
 
-📰 Получите информацию о новейших спецпроектах и играх! 
+📰 Получите информацию о новейших спецпроектах! 
 
     """
-    markup.add(top_status_button, games_projects_button, back_button)
+    markup.add(games_projects_button, back_button)
     bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
     bot.send_message(message.chat.id, msg_txt, reply_markup=markup, parse_mode="HTML")
-
-
 
 def handle_personal_menu(message):
     markup = types.InlineKeyboardMarkup(row_width=1)
 
-    donate_button = types.InlineKeyboardButton('Сделать пожертвование проекту', callback_data='sub_menu_donate')
+    # donate_button = types.InlineKeyboardButton('Сделать пожертвование проекту', callback_data='sub_menu_donate')
     change_personal = types.InlineKeyboardButton('Сменить личные данные', callback_data='sub_menu_change_personal')
-    honorary_donor_button = types.InlineKeyboardButton('Запросить статус до почетного донора',
-                                                       callback_data='sub_menu_honorary_donor')
+    # honorary_donor_button = types.InlineKeyboardButton('Запросить статус до почетного донора',
+    #                                                    callback_data='sub_menu_honorary_donor')
     back_button = types.InlineKeyboardButton('↩️ Назад ', callback_data='change_go_back')
     msg_txt = """
     <b>⚙️ Личные настройки</b>
-    
-💵 Поддержите наш проект и сделайте мир лучше
 
 ✍️ Измените личные данные
 
-🏆 Станьте почетным донором! 
-
     """
-    markup.add(donate_button, change_personal, honorary_donor_button, back_button)
+    markup.add(change_personal, back_button)
     bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
     bot.send_message(message.chat.id, msg_txt, reply_markup=markup, parse_mode="HTML")
 
@@ -168,10 +160,6 @@ def get_last_news():
             news_guid_mapping[news[i]] = data_guid
 
         return news_guid_mapping
-
-
-
-
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('sub_menu_'))
 def process_register_step(callback):

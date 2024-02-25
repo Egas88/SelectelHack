@@ -82,7 +82,7 @@ def handle_events(message):
         for j in range(0, el_in_page):
             cur_res = response_json_result[i + j]
             new_page += "📢 " + cur_res["name"] + "\n\n"
-            new_page += "⌚️Дата проведения: " + cur_res["start_date"] + " - " + cur_res["end_date"] + "\n"
+            new_page += "⌚️Дата проведения: " + "<u>" + str(cur_res["start_date"])[:10] + " - " + str(cur_res["end_date"])[:10] + "</u>" + "\n"
 
             place = cur_res["blood_station"]
             if place is not None:
@@ -91,8 +91,10 @@ def handle_events(message):
             description = cur_res["description"]
             new_description = re.sub("(<br>|</br>|<p>|</p>|&mdash|\t\|)", "", description)
             new_description = new_description.replace("|", "")
-            new_page += new_description
-            new_page += "\n"
+            if new_description == "":
+                new_description = "Здесь могло бы быть описание вашего мероприятия!"
+            new_page += "<i>" + new_description + "</i>"
+            new_page += "\n\n\n"
         pages.append(new_page)
 
     markup = types.InlineKeyboardMarkup(row_width=2)
