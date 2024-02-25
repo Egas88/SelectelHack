@@ -251,7 +251,7 @@ def choose_is_need(message):
             reply_markup=markup,
             parse_mode="HTML"
         )
-        
+
 
 
 # Дальше бога нет, тут функции календаря чисто

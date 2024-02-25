@@ -7,7 +7,8 @@ is_login = False
 is_change_pass = False
 is_change_phone = False
 is_change_email = False
-
+is_aricles = False
+old_man_pic_delete_message = 0
 
 def get_username(chat_id):
     if chat_id in users_dict:
