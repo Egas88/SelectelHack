@@ -23,13 +23,13 @@ def create_donations_markup(message, is_plan, page = 1, per_page = 10):
         if is_plan:
             plan_date = station["plan_date"]
             station_city_title = station["city"]["title"]
-            station_bs_title = station['blood_station']['title']
-            markup.add(InlineKeyboardButton(text = f"Вы запланировали посещение на {plan_date}. {f'На выездную акцию в {station_city_title}' if station['is_out'] == 'true' else f'В центре крови {station_bs_title}' if station['blood_station'] is not None else ''}", callback_data=f"donations_list_cell-{station['id']}-{is_plan}"))
+            station_bs_title = station['blood_station']['title'] if station["blood_station"] is not None else ""
+            markup.add(InlineKeyboardButton(text = f"Вы запланировали посещение на {plan_date}. {f'На выездную акцию в {station_city_title}' if station['is_out'] == 'true' else f'В центре крови {station_bs_title}'}", callback_data=f"donations_list_cell-{station['id']}-{is_plan}"))
         else:
             station_donate_at = station["donate_at"]
             station_city_title = station["city"]["title"]
-            station_bs_title = station['blood_station']['title']
-            markup.add(InlineKeyboardButton(text = f"Вы были записаны на {station_donate_at}. {f'На выездную акцию в {station_city_title}' if station['is_out'] == 'true' else f'В центре крови {station_bs_title}' if station['blood_station'] is not None else ''}", callback_data=f"donations_list_cell-{station['id']}-{is_plan}"))
+            station_bs_title = station['blood_station']['title'] if station["blood_station"] is not None else ""
+            markup.add(InlineKeyboardButton(text = f"Вы были записаны на {station_donate_at}. {f'На выездную акцию в {station_city_title}' if station['is_out'] == 'true' else f'В центре крови {station_bs_title}'}", callback_data=f"donations_list_cell-{station['id']}-{is_plan}"))
     row = []
     if page > 1:
         row.append(InlineKeyboardButton('⬅️', callback_data=f'donations_list_page-{page-1}-{is_plan}'))

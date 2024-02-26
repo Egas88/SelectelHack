@@ -431,7 +431,7 @@ def select_send_or_change(call: CallbackQuery):
     if is_send == "true":
         request_data["image_id"] = "1"
         responce = requests.post(API_DONATIONS, json=request_data, auth=(get_username(call.message.chat.id), get_password(call.message.chat.id)))
-        add_notification_on_donation_plan(call.message.chat.id, request_data["date"], create_notification_message())
+        add_notification_on_donation_plan(call.message.chat.id, request_data["donate_at"], create_notification_message())
         bot.edit_message_text(
             chat_id=call.message.chat.id,
             message_id=call.message.message_id,

@@ -26,7 +26,7 @@ def add_notification(chat_id, message, notify_time):
 
     cursor.execute('''
         INSERT INTO notifications (chat_id, message, notify_time)
-        VALUES (?, ?, ?)
+        VALUES (%s, %s, %s)
     ''', (chat_id, message, notify_time))
 
     connection.commit()
@@ -39,7 +39,7 @@ def get_nearest_notification():
 
     cursor.execute('''
         SELECT * FROM notifications
-            WHERE notify_time >= datetime('now')
+            WHERE notify_time >= NOW()
             ORDER BY notify_time ASC
             LIMIT 1;
     ''')
@@ -54,7 +54,7 @@ def delete_notification(notification_id):
     cursor = connection.cursor()
 
     cursor.execute('''
-        DELETE FROM notifications WHERE id = ?
+        DELETE FROM notifications WHERE id = %s
     ''', (notification_id,))
 
     connection.commit()
