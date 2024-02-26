@@ -9,7 +9,7 @@ def create_notifications_table():
             id SERIAL PRIMARY KEY,
             chat_id INTEGER NOT NULL,
             message TEXT NOT NULL,
-            notify_time DATETIME NOT NULL
+            notify_time TIMESTAMP NOT NULL
         )
     ''')
     connection.commit()
